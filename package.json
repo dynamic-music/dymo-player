@@ -1,0 +1,33 @@
+{
+  "name": "dymo-player",
+  "version": "0.0.1",
+  "description": "dymo playback module optimized for browsers",
+  "main": "lib/index.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "test": "jasmine"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dynamic-music/dymo-player.git"
+  },
+  "author": "florianthalmann",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/dynamic-music/dymo-player/issues"
+  },
+  "homepage": "https://github.com/dynamic-music/dymo-player#readme",
+  "dependencies": {
+    "promise-worker": "^1.1.1",
+    "worker-loader": "^2.0.0",
+    "dymo-core": "git://github.com/dynamic-music/dymo-core.git",
+    "schedulo": "git://github.com/dynamic-music/schedulo.git"
+  },
+  "devDependencies": {
+    "@types/natsort": "^1.0.0",
+    "@types/lodash": "^4.14.110",
+    "typescript": "^2.9.2"
+  }
+}

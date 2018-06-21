@@ -1,0 +1,1 @@
+export { DymoPlayerManager } from './manager';
