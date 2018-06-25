@@ -7,7 +7,9 @@
     "lib": "lib"
   },
   "scripts": {
-    "test": "jasmine"
+    "test": "jasmine",
+    "build": "tsc",
+    "prepare": "npm run build"
   },
   "repository": {
     "type": "git",
