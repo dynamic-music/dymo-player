@@ -25,11 +25,11 @@ export class DymoPlayerManager {
       GlobalVars.FADE_LENGTH = fadeLength;
     }
     this.dymoManager = new DymoManager(new WorkerStoreService(fetcher));
-    this.player = new DymoPlayer(this.dymoManager.getStore(), new ScheduloScheduler());
   }
 
-  init(ontologiesPath?: string): Promise<any> {
-    return this.dymoManager.init(ontologiesPath);
+  async init(ontologiesPath?: string): Promise<any> {
+    await this.dymoManager.init(ontologiesPath);
+    this.player = new DymoPlayer(this.dymoManager.getStore(), new ScheduloScheduler());
   }
 
   getDymoManager(): DymoManager {
