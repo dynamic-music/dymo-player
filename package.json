@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "description": "dymo playback module optimized for browsers",
   "main": "lib/index.js",
+  "typings": "lib/index",
   "directories": {
     "lib": "lib"
   },
@@ -22,10 +23,11 @@
   },
   "homepage": "https://github.com/dynamic-music/dymo-player#readme",
   "dependencies": {
-    "promise-worker": "^1.1.1",
-    "worker-loader": "^2.0.0",
     "dymo-core": "git://github.com/dynamic-music/dymo-core.git",
-    "schedulo": "git://github.com/dynamic-music/schedulo.git"
+    "natsort": "^1.0.6",
+    "promise-worker": "^1.1.1",
+    "schedulo": "git://github.com/dynamic-music/schedulo.git",
+    "worker-loader": "^2.0.0"
   },
   "devDependencies": {
     "@types/natsort": "^1.0.0",
