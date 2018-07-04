@@ -13,23 +13,26 @@ export class DymoPlayerManager {
   private dymoManager: DymoManager;
   private player: DymoPlayer;
 
-  //TODO REMOVE AUDIO CONTEXT
-  constructor(scheduleAheadTime?: number, fadeLength?: number, optimizedMode?: boolean, fetcher?: Fetcher) {
-    if (optimizedMode) {
-      GlobalVars.OPTIMIZED_MODE = true;
-    }
-    if (!isNaN(scheduleAheadTime)) {
-      GlobalVars.SCHEDULE_AHEAD_TIME = scheduleAheadTime;
-    }
-    if (!isNaN(fadeLength)) {
-      GlobalVars.FADE_LENGTH = fadeLength;
-    }
-    this.dymoManager = new DymoManager(new WorkerStoreService(fetcher));
+  constructor(useWorkers?: boolean, fetcher?: Fetcher) {
+    const workerStore = useWorkers ? new WorkerStoreService(fetcher) : null;
+    this.dymoManager = new DymoManager(workerStore);
   }
 
   async init(ontologiesPath?: string): Promise<any> {
     await this.dymoManager.init(ontologiesPath);
     this.player = new DymoPlayer(this.dymoManager.getStore(), new ScheduloScheduler());
+  }
+
+  setScheduleAheadTime(scheduleAheadTime: number) {
+    if (!isNaN(scheduleAheadTime)) {
+      GlobalVars.SCHEDULE_AHEAD_TIME = scheduleAheadTime;
+    }
+  }
+
+  setFadeLength(fadeLength: number) {
+    if (!isNaN(fadeLength)) {
+      GlobalVars.FADE_LENGTH = fadeLength;
+    }
   }
 
   getDymoManager(): DymoManager {

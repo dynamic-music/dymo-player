@@ -65,7 +65,7 @@ export abstract class IndexedNavigator extends Navigator {
     if (this.currentIndex == 0) {
       this.playCount++;
     }
-    return Promise.resolve(this.get());
+    return this.get();
   }
 
   getPosition(): number {
@@ -77,13 +77,13 @@ export abstract class IndexedNavigator extends Navigator {
     this.currentIndex = 0;
   }
 
-  protected abstract get(): SchedulingInstructions;
+  protected abstract get(): Promise<SchedulingInstructions>;
 
 }
 
 export class SequentialNavigator extends IndexedNavigator {
 
-  get() {
+  async get() {
     return { uris: this.toArray(this.parts[this.currentIndex++]) };
   }
 
@@ -91,7 +91,7 @@ export class SequentialNavigator extends IndexedNavigator {
 
 export class ReverseSequentialNavigator extends IndexedNavigator {
 
-  get() {
+  async get() {
     let reverseIndex = this.parts.length-1 - this.currentIndex++;
     return { uris: this.toArray(this.parts[reverseIndex]) };
   }
@@ -107,7 +107,7 @@ export class PermutationNavigator extends IndexedNavigator {
     this.permutedIndices = _.shuffle(_.range(this.parts.length));
   }
 
-  get() {
+  async get() {
     return {
       uris: this.toArray(this.parts[this.permutedIndices[this.currentIndex++]])
     };
@@ -117,10 +117,19 @@ export class PermutationNavigator extends IndexedNavigator {
 
 export class OnsetNavigator extends SequentialNavigator {
 
-  get() {
+  async get() {
     const init = this.currentIndex === 0;
-    const superget = super.get();
-    return { uris : superget.uris, initRefTime: init }
+    //sort parts by ONSET
+    const onsets = await Promise.all(this.parts.map(p => this.getOnset(p)));
+    this.parts = _.sortBy(this.parts, p => onsets[this.parts.indexOf(p)]);
+    //console.log(this.parts)
+    const superget = await super.get();
+    console.log(this.parts.indexOf(superget.uris[0]), await this.getOnset(superget.uris[0]))
+    return { uris: superget.uris, initRefTime: init }
+  }
+
+  private async getOnset(dymoUri: string): Promise<number> {
+    return this.store.findParameterValue(dymoUri, uris.ONSET);
   }
 
 }
