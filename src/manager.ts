@@ -13,9 +13,9 @@ export class DymoPlayerManager {
   private dymoManager: DymoManager;
   private player: DymoPlayer;
 
-  constructor(useWorkers?: boolean, fetcher?: Fetcher) {
+  constructor(useWorkers: boolean, fetcher?: Fetcher) {
     const workerStore = useWorkers ? new WorkerStoreService(fetcher) : null;
-    this.dymoManager = new DymoManager(workerStore);
+    this.dymoManager = new DymoManager(workerStore, fetcher);
   }
 
   async init(ontologiesPath?: string): Promise<any> {
@@ -40,15 +40,21 @@ export class DymoPlayerManager {
   }
 
   getPlayingDymoUris(): Observable<string[]> {
-    return this.player.getPlayingDymoUris();
+    if (this.player) {
+      return this.player.getPlayingDymoUris();
+    }
   }
 
   getAudioBank() {
-    return this.player.getAudioBank();
+    if (this.player) {
+      return this.player.getAudioBank();
+    }
   }
 
   getPosition(dymoUri: string) {
-    return this.player.getPosition(dymoUri);
+    if (this.player) {
+      return this.player.getPosition(dymoUri);
+    }
   }
 
   /*updateNavigatorPosition(dymoUri, level, position) {

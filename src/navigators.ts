@@ -124,7 +124,6 @@ export class OnsetNavigator extends SequentialNavigator {
     this.parts = _.sortBy(this.parts, p => onsets[this.parts.indexOf(p)]);
     //console.log(this.parts)
     const superget = await super.get();
-    console.log(this.parts.indexOf(superget.uris[0]), await this.getOnset(superget.uris[0]))
     return { uris: superget.uris, initRefTime: init }
   }
 
