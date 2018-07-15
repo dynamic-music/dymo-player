@@ -20,12 +20,17 @@ export class DymoPlayerManager {
 
   async init(ontologiesPath?: string): Promise<any> {
     await this.dymoManager.init(ontologiesPath);
+    this.initPlayer();
+  }
+
+  private initPlayer() {
     this.player = new DymoPlayer(this.dymoManager.getStore(), new ScheduloScheduler());
   }
 
   setScheduleAheadTime(scheduleAheadTime: number) {
     if (!isNaN(scheduleAheadTime)) {
       GlobalVars.SCHEDULE_AHEAD_TIME = scheduleAheadTime;
+      this.initPlayer();
     }
   }
 

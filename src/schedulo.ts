@@ -35,13 +35,13 @@ export class ScheduloScheduler extends DymoScheduler {
     } else if (previousObject) {
       referenceTime = previousObject.getReferenceTime();
     } else {
-      referenceTime = this.schedulo.getCurrentTime()+0.5;
+      referenceTime = this.schedulo.getCurrentTime()+GlobalVars.SCHEDULE_AHEAD_TIME+0.5;
     }
 
     let newObject = new ScheduloScheduledObject(dymoUri, referenceTime, this.store, this.player);
 
     let startTime;
-    let onset = newObject.getParam(uris.ONSET);
+    let onset = await newObject.getParam(uris.ONSET);
     if (!isNaN(onset)) {
       startTime = Time.At(onset); //this onset includes ref time!
     } else if (previousObject) {
@@ -50,13 +50,15 @@ export class ScheduloScheduler extends DymoScheduler {
       startTime = Time.At(referenceTime);
     }
 
+    console.log(dymoUri, onset, startTime)
+
     return this.schedulo.scheduleAudio(
       [await this.store.getSourcePath(dymoUri)],
       startTime,
       Playback.Oneshot()
     ).then(audioObject => new Promise<ScheduloScheduledObject>(resolve => {
       newObject.setScheduloObject(audioObject[0]);
-      newObject.getScheduloObject().on('scheduled', ()=>{
+      newObject.getScheduloObject().on('loaded', ()=>{
         resolve(newObject);
       });
       //resolve(newObject);

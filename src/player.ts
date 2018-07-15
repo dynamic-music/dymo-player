@@ -167,7 +167,8 @@ export class HierarchicalPlayer {
         /*TODO also, override with this duration if there is one! (e.g. sequence
           with a variable duration regardless of its parts' durations)*/
         let lastObjects = this.partPlayers.map(p => p.getLastScheduledObject());
-        lastObjects.sort((a,b) => a.getParam(uris.DURATION) - b.getParam(uris.DURATION));
+        let durations = await Promise.all(lastObjects.map(o => o.getParam(uris.DURATION)));
+        lastObjects.sort((a,b) => durations[lastObjects.indexOf(a)] - durations[lastObjects.indexOf(b)]);
         return Promise.resolve(_.last(lastObjects));
       }
     } else {

@@ -23,7 +23,7 @@ export abstract class ScheduledObject {
     return [this.dymoUri].concat(this.parentUris);
   }
 
-  abstract getParam(paramUri: string): number;
+  abstract async getParam(paramUri: string): Promise<number>;
 
   abstract stop(): void;
 
@@ -38,8 +38,8 @@ export class DummyScheduledObject extends ScheduledObject {
     setTimeout(() => this.player.objectEnded(this), delay);
   }
 
-  getParam(paramUri: string): number {
-    return 0;//this.store.findParameterValue(this.dymoUri, paramUri);
+  async getParam(paramUri: string): Promise<number> {
+    return Promise.resolve(0);//this.store.findParameterValue(this.dymoUri, paramUri);
   }
 
   stop() {

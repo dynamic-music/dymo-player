@@ -29,6 +29,7 @@ export class ScheduloScheduledObject extends ScheduledObject {
   private attributeToValue = new Map<string,number>();
   private attributeToValueAfterBehavior = new Map<string,number>();
   private object: AudioObject;
+  private ready: Promise<any>;
 
   constructor(dymoUri: string, private referenceTime: number,
       store: SuperDymoStore, player: DymoPlayer) {
@@ -36,8 +37,8 @@ export class ScheduloScheduledObject extends ScheduledObject {
     this.init2();
   }
 
-  private init2() {
-    PAIRINGS.forEach(async (attribute, typeUri) => {
+  private async init2() {
+    this.ready = Promise.all([...PAIRINGS.keys()].map(async (typeUri) => {
       await this.initAttribute(this.dymoUri, typeUri);
       //if behavior not independent, init parent attributes
       let behavior = await this.store.findObject(typeUri, uris.HAS_BEHAVIOR);
@@ -46,7 +47,7 @@ export class ScheduloScheduledObject extends ScheduledObject {
         await Promise.all(this.parentUris.map(p => this.initAttribute(p, typeUri)));
       }
       this.updateObjectParam(typeUri);
-    });
+    }));
   }
 
   private async initAttribute(dymoUri: string, typeUri: string) {
@@ -80,7 +81,8 @@ export class ScheduloScheduledObject extends ScheduledObject {
     return this.referenceTime;
   }
 
-  getParam(paramUri: string): number {
+  async getParam(paramUri: string): Promise<number> {
+    await this.ready;
     return this.attributeToValueAfterBehavior.get(paramUri);
   }
 
