@@ -27,6 +27,10 @@ export class DymoPlayer {
     return this.scheduler.getAudioBank();
   }
 
+  update() {
+    this.scheduler.update();
+  }
+
   play(dymoUri: string): Promise<any> {
     let newPlayer = new HierarchicalPlayer(dymoUri, this.store, null,
       this.scheduler, true);

@@ -9,11 +9,16 @@ export class ScheduloScheduler extends DymoScheduler {
 
   constructor() {
     super();
-    this.schedulo = new Schedulo({
+    this.schedulo = new Schedulo();
+    this.update();
+    this.schedulo.start();
+  }
+
+  update() {
+    this.schedulo.setTimings({
       connectToGraph: {countIn: GlobalVars.SCHEDULE_AHEAD_TIME, countOut: 1},
       loadBuffer: {countIn: GlobalVars.SCHEDULE_AHEAD_TIME+2, countOut: 5}
     });
-    this.schedulo.start();
   }
 
   setListenerOrientation(posX, posY, posZ, forwX, forwY, forwZ) {
@@ -50,7 +55,7 @@ export class ScheduloScheduler extends DymoScheduler {
       startTime = Time.At(referenceTime);
     }
 
-    console.log(dymoUri, onset, startTime)
+    console.log(dymoUri, onset)
 
     return this.schedulo.scheduleAudio(
       [await this.store.getSourcePath(dymoUri)],
