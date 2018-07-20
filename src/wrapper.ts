@@ -31,7 +31,7 @@ export class ScheduloScheduledObject extends ScheduledObject {
   private object: AudioObject;
   private ready: Promise<any>;
 
-  constructor(dymoUri: string, private referenceTime: number,
+  constructor(dymoUri: string, private previousObject: ScheduloScheduledObject,
       store: SuperDymoStore, player: DymoPlayer) {
     super(dymoUri, store, player);
     this.init2();
@@ -77,8 +77,12 @@ export class ScheduloScheduledObject extends ScheduledObject {
     return this.object;
   }
 
-  getReferenceTime(): number {
-    return this.referenceTime;
+  getStartTime(): number {
+    return this.object.getStartTime();
+  }
+
+  getEndTime(): number {
+    return this.object.getStartTime()+this.object.getDuration();
   }
 
   async getParam(paramUri: string): Promise<number> {
@@ -116,11 +120,6 @@ export class ScheduloScheduledObject extends ScheduledObject {
       }
     }
 
-    //deal with onset specifically
-    if (typeUri === uris.ONSET && value != null) {
-      value = this.referenceTime+value;
-    }
-
     //merge panning into list
     if (typeUri === uris.PAN || typeUri === uris.DISTANCE || typeUri === uris.HEIGHT) {
       let pan = this.attributeToValue.get(uris.PAN);
@@ -133,7 +132,6 @@ export class ScheduloScheduledObject extends ScheduledObject {
       }
     }
 
-    //console.log("UPDATE2", typeUri, value, allValues)
     //update the schedulo object
     if (value != null) {
       //console.log(typeUri, value)
@@ -142,15 +140,23 @@ export class ScheduloScheduledObject extends ScheduledObject {
     }
   }
 
-  private setObjectParam(typeUri: string, value) {
+  private async setObjectParam(typeUri: string, value) {
     if (this.object) {
       const target = PAIRINGS.get(typeUri) || PAIRINGS.get(typeUri);
-      this.object.set(target, value);
+      //deal with onset specifically
+      if (typeUri !== uris.ONSET || (this.previousObject && value != null)) {
+        if (typeUri === uris.ONSET ) {
+          const previousOnset = await this.previousObject.getParam(uris.ONSET);
+          if (value-previousOnset >= 0) {
+            //console.log(this.previousObject.getStartTime(), value, previousOnset, this.previousObject.getStartTime()+value-previousOnset)
+            value = this.previousObject.getStartTime()+value-previousOnset;
+          } else {
+            value = this.previousObject.getEndTime();
+          }
+        }
+        this.object.set(target, value);
+      }
     }
-  }
-
-  getEndTime(): number {
-    return this.object.getStartTime()+this.object.getDuration();
   }
 
   observedValueChanged(paramUri: string, paramType: string, value: number) {
