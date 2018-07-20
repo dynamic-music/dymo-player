@@ -225,6 +225,10 @@ export class WorkerStoreService implements SuperDymoStore {
     return this.worker.postMessage({function:'loadData', args:[data]});
   }
 
+  logData(): Promise<any> {
+    return this.worker.postMessage({function:'logData', args:[]});
+  }
+
 
 
   ////// PRIVATE FUNCTIONS

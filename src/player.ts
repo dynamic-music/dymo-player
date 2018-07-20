@@ -154,7 +154,7 @@ export class HierarchicalPlayer {
 
     if (await this.navigator.hasParts()) {
       if (next && next.uris) {
-        console.log(next.uris)
+        console.log(this.dymoUri, next.uris)
         this.partPlayers = next.uris.map(p => new HierarchicalPlayer(
           p, this.store, currentReference, this.scheduler,
           next.initRefTime
