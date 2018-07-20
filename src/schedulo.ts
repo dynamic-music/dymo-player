@@ -40,7 +40,7 @@ export class ScheduloScheduler extends DymoScheduler {
     } else if (previousObject) {
       referenceTime = previousObject.getReferenceTime();
     } else {
-      referenceTime = this.schedulo.getCurrentTime()+GlobalVars.SCHEDULE_AHEAD_TIME+0.5;
+      referenceTime = this.schedulo.getCurrentTime()+GlobalVars.SCHEDULE_AHEAD_TIME;
     }
 
     let newObject = new ScheduloScheduledObject(dymoUri, referenceTime, this.store, this.player);
@@ -55,7 +55,7 @@ export class ScheduloScheduler extends DymoScheduler {
       startTime = Time.At(referenceTime);
     }
 
-    console.log(dymoUri, onset)
+    //console.log(dymoUri, onset)
 
     return this.schedulo.scheduleAudio(
       [await this.store.getSourcePath(dymoUri)],
