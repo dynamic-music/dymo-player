@@ -1,6 +1,6 @@
 import { Observable } from 'rxjs/Observable';
 import { ScheduloScheduler } from './schedulo';
-import { uris, GlobalVars, Fetcher } from 'dymo-core';
+import { uris, Fetcher } from 'dymo-core';
 import { DymoPlayer } from './player';
 import { WorkerStoreService } from './worker-store/superstore-service';
 import { DymoManager } from 'dymo-core';
@@ -13,29 +13,16 @@ export class DymoPlayerManager {
   private dymoManager: DymoManager;
   private player: DymoPlayer;
 
-  constructor(useWorkers: boolean, fetcher?: Fetcher) {
+  constructor(useWorkers: boolean, private scheduleAheadTime = 1,
+      private loadAheadTime = 3, private fadeLength = 0.01, fetcher?: Fetcher) {
     const workerStore = useWorkers ? new WorkerStoreService(fetcher) : null;
     this.dymoManager = new DymoManager(workerStore, fetcher);
   }
 
   async init(ontologiesPath?: string): Promise<any> {
     await this.dymoManager.init(ontologiesPath);
-    this.player = new DymoPlayer(this.dymoManager.getStore(), new ScheduloScheduler());
-  }
-
-  setScheduleAheadTime(scheduleAheadTime: number) {
-    if (!isNaN(scheduleAheadTime)) {
-      GlobalVars.SCHEDULE_AHEAD_TIME = scheduleAheadTime;
-      if (this.player) {
-        this.player.update();
-      }
-    }
-  }
-
-  setFadeLength(fadeLength: number) {
-    if (!isNaN(fadeLength)) {
-      GlobalVars.FADE_LENGTH = fadeLength;
-    }
+    this.player = new DymoPlayer(this.dymoManager.getStore(),
+      new ScheduloScheduler(this.scheduleAheadTime, this.loadAheadTime, this.fadeLength));
   }
 
   getDymoManager(): DymoManager {

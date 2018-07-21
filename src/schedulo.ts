@@ -1,5 +1,5 @@
 import { Schedulo, Time, Playback } from 'schedulo';
-import { uris, GlobalVars } from 'dymo-core';
+import { uris } from 'dymo-core';
 import { DymoScheduler } from './scheduler';
 import { ScheduloScheduledObject } from './wrapper';
 
@@ -7,18 +7,16 @@ export class ScheduloScheduler extends DymoScheduler {
 
   private schedulo: Schedulo;
 
-  constructor() {
+  constructor(private scheduleAheadTime: number, loadAheadTime: number, fadeLength: number) {
     super();
-    this.schedulo = new Schedulo();
-    this.update();
+    this.schedulo = new Schedulo(
+      {
+        connectToGraph: {countIn: scheduleAheadTime, countOut: 1, minCountIn: scheduleAheadTime},
+        loadBuffer: {countIn: loadAheadTime, countOut: 5, minCountIn: loadAheadTime}
+      },
+      fadeLength
+    );
     this.schedulo.start();
-  }
-
-  update() {
-    this.schedulo.setTimings({
-      connectToGraph: {countIn: GlobalVars.SCHEDULE_AHEAD_TIME, countOut: 1},
-      loadBuffer: {countIn: GlobalVars.SCHEDULE_AHEAD_TIME+2, countOut: 5}
-    });
   }
 
   setListenerOrientation(posX, posY, posZ, forwX, forwY, forwZ) {
@@ -47,7 +45,7 @@ export class ScheduloScheduler extends DymoScheduler {
     } else if (previousObject) {
       startTime = Time.After([previousObject.getScheduloObject()]);
     } else {
-      startTime = Time.At(this.schedulo.getCurrentTime()+GlobalVars.SCHEDULE_AHEAD_TIME);
+      startTime = Time.At(this.schedulo.getCurrentTime()+this.scheduleAheadTime);
     }
 
     //console.log(dymoUri, startTime, previousObject)

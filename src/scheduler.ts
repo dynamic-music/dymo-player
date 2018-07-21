@@ -65,8 +65,6 @@ export abstract class DymoScheduler {
 
   abstract getAudioBank(): any;
 
-  abstract update(): void;
-
 }
 
 export class DummyScheduler extends DymoScheduler {
@@ -87,7 +85,5 @@ export class DummyScheduler extends DymoScheduler {
   getAudioBank(): any {
     return null;
   }
-
-  update() {}
 
 }
