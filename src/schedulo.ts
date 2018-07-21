@@ -7,7 +7,7 @@ export class ScheduloScheduler extends DymoScheduler {
 
   private schedulo: Schedulo;
 
-  constructor(private scheduleAheadTime: number, loadAheadTime: number, fadeLength: number) {
+  constructor(scheduleAheadTime: number, loadAheadTime: number, fadeLength: number) {
     super();
     this.schedulo = new Schedulo(
       {
@@ -40,15 +40,14 @@ export class ScheduloScheduler extends DymoScheduler {
       previousOnset = await previousObject.getParam(uris.ONSET);
     }
     if (!isNaN(onset) && !isNaN(previousOnset) && onset-previousOnset >= 0) {
-      const previousStartTime = previousObject.getStartTime();
-      startTime = Time.At(previousStartTime+onset-previousOnset);
+      startTime = Time.RelativeTo(previousObject.getScheduloObject(), onset-previousOnset);
     } else if (previousObject) {
       startTime = Time.After([previousObject.getScheduloObject()]);
     } else {
-      startTime = Time.At(this.schedulo.getCurrentTime()+this.scheduleAheadTime);
+      startTime = Time.Asap;
     }
 
-    //console.log(dymoUri, startTime, previousObject)
+    console.log(dymoUri, startTime)
 
     return this.schedulo.scheduleAudio(
       [await this.store.getSourcePath(dymoUri)],

@@ -77,12 +77,8 @@ export class ScheduloScheduledObject extends ScheduledObject {
     return this.object;
   }
 
-  getStartTime(): number {
-    return this.object.getStartTime();
-  }
-
-  getEndTime(): number {
-    return this.object.getStartTime()+this.object.getDuration();
+  getDuration(): number {
+    return this.object.getDuration();
   }
 
   async getParam(paramUri: string): Promise<number> {
@@ -92,7 +88,7 @@ export class ScheduloScheduledObject extends ScheduledObject {
 
   stop() {
     if (this.object) {
-      this.object.stop(Time.Immediately, Stop.Immediately);
+      this.object.stop(Time.Asap, Stop.Asap);
     }
     PAIRINGS.forEach((attribute, typeUri) => {
       if (FEATURES.indexOf(typeUri) >= 0) {
@@ -149,9 +145,9 @@ export class ScheduloScheduledObject extends ScheduledObject {
           const previousOnset = await this.previousObject.getParam(uris.ONSET);
           if (value-previousOnset >= 0) {
             //console.log(this.previousObject.getStartTime(), value, previousOnset, this.previousObject.getStartTime()+value-previousOnset)
-            value = this.previousObject.getStartTime()+value-previousOnset;
+            value = value-previousOnset;
           } else {
-            value = this.previousObject.getEndTime();
+            value = value+this.previousObject.getDuration();
           }
         }
         this.object.set(target, value);
