@@ -11,9 +11,10 @@ import { DymoManager } from 'dymo-core';
 export class DymoPlayerManager {
 
   private dymoManager: DymoManager;
+  private schedulo: ScheduloScheduler;
   private player: DymoPlayer;
 
-  constructor(useWorkers: boolean, private scheduleAheadTime = 1,
+  constructor(useWorkers: boolean, private preloadBuffers = true, private scheduleAheadTime = 1,
       private loadAheadTime = 3, private fadeLength = 0.01, fetcher?: Fetcher) {
     const workerStore = useWorkers ? new WorkerStoreService(fetcher) : null;
     this.dymoManager = new DymoManager(workerStore, fetcher);
@@ -21,8 +22,17 @@ export class DymoPlayerManager {
 
   async init(ontologiesPath?: string): Promise<any> {
     await this.dymoManager.init(ontologiesPath);
-    this.player = new DymoPlayer(this.dymoManager.getStore(),
-      new ScheduloScheduler(this.scheduleAheadTime, this.loadAheadTime, this.fadeLength));
+    this.schedulo = new ScheduloScheduler(this.scheduleAheadTime, this.loadAheadTime, this.fadeLength);
+    this.player = new DymoPlayer(this.dymoManager.getStore(), this.schedulo);
+  }
+
+  async loadDymo(...fileUris: string[]): Promise<any> {
+    const loaded = await this.dymoManager.loadIntoStore(...fileUris);
+    if (this.preloadBuffers) {
+      const paths = await this.dymoManager.getStore().getAllSourcePaths();
+      await this.schedulo.getAudioBank().preloadBuffers(paths)
+    }
+    return loaded;
   }
 
   getDymoManager(): DymoManager {

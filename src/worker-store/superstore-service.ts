@@ -113,6 +113,10 @@ export class WorkerStoreService implements SuperDymoStore {
     return this.worker.postMessage({function:'findAllParents', args:[dymoUri]});
   }
 
+  getAllSourcePaths(): Promise<string[]> {
+    return this.worker.postMessage({function:'getAllSourcePaths', args:[]});
+  }
+
   getSourcePath(dymoUri: string): Promise<string> {
     return this.worker.postMessage({function:'getSourcePath', args:[dymoUri]});
   }

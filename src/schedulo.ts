@@ -47,7 +47,7 @@ export class ScheduloScheduler extends DymoScheduler {
       startTime = Time.Asap;
     }
 
-    console.log(dymoUri, startTime)
+    //console.log(dymoUri, startTime)
 
     return this.schedulo.scheduleAudio(
       [await this.store.getSourcePath(dymoUri)],
