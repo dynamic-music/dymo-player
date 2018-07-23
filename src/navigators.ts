@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
 import { Time } from 'schedulo';
-import { uris, SuperDymoStore } from 'dymo-core';
+import { uris, SuperDymoStore, PartsObserver } from 'dymo-core';
 
 export interface SchedulingInstructions {
   uris: string[],
@@ -8,19 +8,26 @@ export interface SchedulingInstructions {
   time?: Time
 }
 
-export abstract class Navigator {
+export abstract class Navigator implements PartsObserver {
 
   protected playCount = 0;
   protected parts: string[];
 
-  constructor(protected dymoUri: string, protected store: SuperDymoStore) {}
+  constructor(protected dymoUri: string, protected store: SuperDymoStore) {
+    this.store.addPartsObserver(dymoUri, this);
+  }
 
   async hasParts(): Promise<boolean> {
-    return (await this.store.findParts(this.dymoUri)).length > 0;
+    if (!this.parts) {
+      await this.updateParts();
+    }
+    return this.parts.length > 0;
   }
 
   async next(): Promise<SchedulingInstructions> {
-    this.parts = await this.store.findParts(this.dymoUri);
+    if (!this.parts) {
+      await this.updateParts();
+    }
     return undefined;
   }
 
@@ -42,6 +49,16 @@ export abstract class Navigator {
 
   protected toArray(s: string): string[] {
     return s ? [s] : undefined;
+  }
+
+  observedPartsChanged(dymoUri: string) {
+    if (dymoUri == this.dymoUri) {
+      this.updateParts();
+    }
+  }
+
+  private async updateParts() {
+    this.parts = await this.store.findParts(this.dymoUri);
   }
 
 }
@@ -119,11 +136,19 @@ export class OnsetNavigator extends SequentialNavigator {
 
   async get() {
     const init = this.currentIndex === 0;
-    //sort parts by ONSET
-    const onsets = await Promise.all(this.parts.map(p => this.getOnset(p)));
-    this.parts = _.sortBy(this.parts, p => onsets[this.parts.indexOf(p)]);
+    await this.sortParts();
     const superget = await super.get();
     return { uris: superget.uris, initRefTime: init }
+  }
+
+  private async sortParts() {
+    //sort parts by ONSET if not currently sorted
+    //TODO: now this could also observe if the onsets change...
+    const onsets = await Promise.all(this.parts.map(p => this.getOnset(p)));
+    const sorted = onsets.every((o,i) => i == 0 || o >= onsets[i-1]);
+    if (!sorted) {
+      this.parts = _.sortBy(this.parts, p => onsets[this.parts.indexOf(p)]);
+    }
   }
 
   private async getOnset(dymoUri: string): Promise<number> {
