@@ -35,6 +35,15 @@ export class DymoPlayerManager {
     return loaded;
   }
 
+  async loadDymoFromString(dymo: string): Promise<any> {
+    const loaded = await this.dymoManager.loadIntoStoreFromString(dymo);
+    if (this.preloadBuffers) {
+      const paths = await this.dymoManager.getStore().getAllSourcePaths();
+      await this.schedulo.getAudioBank().preloadBuffers(paths)
+    }
+    return loaded;
+  }
+
   getDymoManager(): DymoManager {
     return this.dymoManager;
   }

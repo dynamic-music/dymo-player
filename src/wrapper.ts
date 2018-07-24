@@ -116,18 +116,6 @@ export class ScheduloScheduledObject extends ScheduledObject {
       }
     }
 
-    //merge panning into list
-    if (typeUri === uris.PAN || typeUri === uris.DISTANCE || typeUri === uris.HEIGHT) {
-      let pan = this.attributeToValue.get(uris.PAN);
-      let dist = this.attributeToValue.get(uris.DISTANCE);
-      let heig = this.attributeToValue.get(uris.HEIGHT);
-      if (pan != null && dist != null && heig != null) {
-        value = [pan, dist, heig];
-      } else {
-        value = null;
-      }
-    }
-
     //update the schedulo object
     if (value != null) {
       //console.log(typeUri, value)
@@ -139,8 +127,19 @@ export class ScheduloScheduledObject extends ScheduledObject {
   private async setObjectParam(typeUri: string, value) {
     if (this.object) {
       const target = PAIRINGS.get(typeUri) || PAIRINGS.get(typeUri);
-      //deal with onset specifically
+      //ignore onset if no previous value...
       if (typeUri !== uris.ONSET || (this.previousObject && value != null)) {
+        //merge panning into list
+        if (typeUri === uris.PAN || typeUri === uris.DISTANCE || typeUri === uris.HEIGHT) {
+          let pan = this.attributeToValueAfterBehavior.get(uris.PAN);
+          let dist = this.attributeToValueAfterBehavior.get(uris.DISTANCE);
+          let heig = this.attributeToValueAfterBehavior.get(uris.HEIGHT);
+          pan = pan ? pan : 0;
+          dist = dist ? dist : 0;
+          heig = heig ? heig : 0;
+          value = [pan, dist, heig];
+        }
+        //deal with onset specifically
         if (typeUri === uris.ONSET ) {
           const previousOnset = await this.previousObject.getParam(uris.ONSET);
           if (value-previousOnset >= 0) {
@@ -150,6 +149,7 @@ export class ScheduloScheduledObject extends ScheduledObject {
             value = value+this.previousObject.getDuration();
           }
         }
+        //console.log(typeUri, value);
         this.object.set(target, value);
       }
     }
