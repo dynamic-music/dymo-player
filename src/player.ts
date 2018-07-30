@@ -27,11 +27,15 @@ export class DymoPlayer {
     return this.scheduler.getAudioBank();
   }
 
-  play(dymoUri: string): Promise<any> {
+  async play(dymoUri: string, afterUri?: string): Promise<any> {
     let newPlayer = new HierarchicalPlayer(dymoUri, this.store, null,
       this.scheduler, true);
     this.currentPlayers.set(dymoUri, newPlayer);
-    return newPlayer.play();
+    if (afterUri) {
+      const ending = this.currentPlayers.get(afterUri).getEndingPromise();
+      await ending; //TODO LETS SEE HOW WELL THIS WORKS!
+      return newPlayer.play();
+    }
   }
 
   stop(dymoUri?: string) {
@@ -108,6 +112,7 @@ export class HierarchicalPlayer {
   private scheduledObjects: ScheduledObject[] = [];
   private partPlayers: HierarchicalPlayer[] = [];
   private isPlaying: boolean = false;
+  private endingPromise: Promise<ScheduledObject>;
 
   constructor(private dymoUri: string, private store: SuperDymoStore,
     private referenceObject: ScheduledObject, private scheduler: DymoScheduler,
@@ -118,10 +123,15 @@ export class HierarchicalPlayer {
     return _.last(this.scheduledObjects);
   }
 
+  getEndingPromise(): Promise<ScheduledObject> {
+    return this.endingPromise;
+  }
+
   /** returns the last object scheduled before this player is done */
   play(): Promise<ScheduledObject> {
     this.isPlaying = true;
-    return this.recursivePlay();
+    this.endingPromise = this.recursivePlay();
+    return this.endingPromise;
   }
 
   stop() {

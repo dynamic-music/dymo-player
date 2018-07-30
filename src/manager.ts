@@ -1,6 +1,6 @@
 import { Observable } from 'rxjs/Observable';
 import { ScheduloScheduler } from './schedulo';
-import { uris, Fetcher } from 'dymo-core';
+import { uris, Fetcher, LoadedStuff } from 'dymo-core';
 import { DymoPlayer } from './player';
 import { WorkerStoreService } from './worker-store/superstore-service';
 import { DymoManager } from 'dymo-core';
@@ -26,7 +26,7 @@ export class DymoPlayerManager {
     this.player = new DymoPlayer(this.dymoManager.getStore(), this.schedulo);
   }
 
-  async loadDymo(...fileUris: string[]): Promise<any> {
+  async loadDymo(...fileUris: string[]): Promise<LoadedStuff> {
     const loaded = await this.dymoManager.loadIntoStore(...fileUris);
     if (this.preloadBuffers) {
       const paths = await this.dymoManager.getStore().getAllSourcePaths();
@@ -35,7 +35,7 @@ export class DymoPlayerManager {
     return loaded;
   }
 
-  async loadDymoFromString(dymo: string): Promise<any> {
+  async loadDymoFromString(dymo: string): Promise<LoadedStuff> {
     const loaded = await this.dymoManager.loadIntoStoreFromString(dymo);
     if (this.preloadBuffers) {
       const paths = await this.dymoManager.getStore().getAllSourcePaths();
@@ -79,8 +79,8 @@ export class DymoPlayerManager {
     this.scheduler.syncNavigators(this.addContext(syncDymo), this.addContext(goalDymo), level);
   }*/
 
-  startPlayingUri(dymoUri) {
-    this.player.play(this.addContext(dymoUri));
+  startPlayingUri(dymoUri: string, afterUri?: string) {
+    this.player.play(this.addContext(dymoUri), afterUri);
   }
 
   stopPlayingUri(dymoUri) {
