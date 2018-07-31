@@ -12,6 +12,7 @@ export class WorkerStoreService implements SuperDymoStore {
     this.worker = new PromiseWorker(new SuperStoreWorker());//new Worker(workerPath);
     this.worker._worker.addEventListener('message', this.notifyObservers.bind(this));
     if (fetcher) {
+      //TODO doesn't work of course..
       this.worker.postMessage({function:'setFetcher', args:[fetcher]});
     }
   }
@@ -187,8 +188,8 @@ export class WorkerStoreService implements SuperDymoStore {
   ////// EASYSTORE FUNCTIONS /////////
 
   addValueObserver(subject: string, predicate: string, observer: Observer) {
-    const key = this.addObserver(observer, subject);
-    return this.worker.postMessage({function:'addValueObserver', args:[subject, predicate, key]});
+    this.addObserver(observer, subject);
+    return this.worker.postMessage({function:'addValueObserver', args:[subject, predicate, null]});
   }
 
   getValueObserverCount(): Promise<number> {
@@ -268,7 +269,6 @@ export class WorkerStoreService implements SuperDymoStore {
     if (event.data.paramUri) {
       const observers = this.getObservers(event.data.paramUri)
         .concat(this.getObservers(event.data.paramType));
-      //console.log("NOTIFIED", event.data, observers);
       observers.forEach(o => (<ValueObserver>o).observedValueChanged(event.data.paramUri, event.data.paramType, event.data.value));
     } else if (event.data.dymoUri) {
       const observers = this.getObservers(event.data.dymoUri);

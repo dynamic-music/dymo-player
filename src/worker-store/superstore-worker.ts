@@ -6,8 +6,8 @@ declare var self;
 const store = new SuperStore();
 
 registerPromiseWorker(message => {
-  //console.log(message)
   if (message.function === "addParameterObserver"
+      || message.function === "addValueObserver"
       || message.function === "addTypeObserver"
       || message.function === "addPartsObserver") {
     message.args[message.args.length-1] = self;
