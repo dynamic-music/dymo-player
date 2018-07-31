@@ -34,8 +34,8 @@ export class DymoPlayer {
     if (afterUri) {
       const ending = this.currentPlayers.get(afterUri).getEndingPromise();
       await ending; //TODO LETS SEE HOW WELL THIS WORKS!
-      return newPlayer.play();
     }
+    return newPlayer.play();
   }
 
   stop(dymoUri?: string) {
