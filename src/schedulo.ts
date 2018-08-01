@@ -6,6 +6,8 @@ import { ScheduloScheduledObject } from './wrapper';
 export class ScheduloScheduler extends DymoScheduler {
 
   private schedulo: Schedulo;
+  private isStarted: boolean;
+  private isPaused: boolean;
 
   constructor(scheduleAheadTime: number, loadAheadTime: number, fadeLength: number) {
     super();
@@ -16,7 +18,31 @@ export class ScheduloScheduler extends DymoScheduler {
       },
       fadeLength
     );
-    this.schedulo.start();
+    this.start();
+  }
+
+  start() {
+    if (!this.isStarted) {
+      this.isStarted = true;
+      this.schedulo.start();
+    }
+  }
+
+  pause() {
+    if (this.isStarted && !this.isPaused) {
+      this.isPaused = true;
+      this.schedulo.pause();
+    } else if (this.isStarted) {
+      this.isPaused = false;
+      this.schedulo.start();
+    }
+  }
+
+  stop() {
+    if (this.isStarted) {
+      this.isStarted = false;
+      this.schedulo.stop();
+    }
   }
 
   setListenerOrientation(posX, posY, posZ, forwX, forwY, forwZ) {
