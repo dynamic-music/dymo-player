@@ -224,6 +224,10 @@ export class WorkerStoreService implements SuperDymoStore {
     return this.worker.postMessage({function:'findObjectValue', args:[subject, predicate]});
   }
 
+  findAllObjectValues(subject: string, predicate: string): Promise<any[]> {
+    return this.worker.postMessage({function:'findAllObjectValues', args:[subject, predicate]});
+  }
+
   isSubclassOf(class1: string, class2: string): Promise<boolean> {
     return this.worker.postMessage({function:'isSubclassOf', args:[class1, class2]});
   }
