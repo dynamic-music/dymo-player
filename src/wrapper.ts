@@ -1,6 +1,6 @@
 import { AudioObject, Parameter, Time, Stop } from 'schedulo';
-import { uris, SuperDymoStore } from 'dymo-core';
-import { DymoPlayer } from './player';
+import { uris } from 'dymo-core';
+import { HierarchicalPlayer } from './player';
 import { ScheduledObject } from './scheduler';
 
 //list of used features to speed up init
@@ -33,8 +33,8 @@ export class ScheduloScheduledObject extends ScheduledObject {
   private ready: Promise<any>;
 
   constructor(dymoUri: string, private previousObject: ScheduloScheduledObject,
-      store: SuperDymoStore, player: DymoPlayer) {
-    super(dymoUri, store, player);
+      player: HierarchicalPlayer) {
+    super(dymoUri, player);
     this.init2();
   }
 

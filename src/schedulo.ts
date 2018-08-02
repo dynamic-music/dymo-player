@@ -2,6 +2,7 @@ import { Schedulo, Time, Playback } from 'schedulo';
 import { uris } from 'dymo-core';
 import { DymoScheduler } from './scheduler';
 import { ScheduloScheduledObject } from './wrapper';
+import { HierarchicalPlayer } from './player';
 
 export class ScheduloScheduler extends DymoScheduler {
 
@@ -53,11 +54,13 @@ export class ScheduloScheduler extends DymoScheduler {
     return this.schedulo.getAudioBank();
   }
 
-  async schedule(dymoUri: string, previousObject: ScheduloScheduledObject): Promise<ScheduloScheduledObject> {
+  async schedule(dymoUri: string, previousObject: ScheduloScheduledObject, player: HierarchicalPlayer): Promise<ScheduloScheduledObject> {
 
     if (!dymoUri) return Promise.reject('no dymoUri given');
 
-    const newObject = new ScheduloScheduledObject(dymoUri, previousObject, this.store, this.player);
+    console.log("SCHEDULE")
+
+    const newObject = new ScheduloScheduledObject(dymoUri, previousObject, player);
 
     let startTime;
     const onset = await newObject.getParam(uris.ONSET);
@@ -76,7 +79,7 @@ export class ScheduloScheduler extends DymoScheduler {
     //console.log(dymoUri, startTime)
 
     return this.schedulo.scheduleAudio(
-      [await this.store.getSourcePath(dymoUri)],
+      [await player.getStore().getSourcePath(dymoUri)],
       startTime,
       Playback.Oneshot()
     ).then(audioObject => new Promise<ScheduloScheduledObject>(resolve => {

@@ -6,6 +6,16 @@ import { uris, SuperDymoStore } from 'dymo-core';
 import { DymoScheduler, ScheduledObject } from './scheduler';
 import { Navigator, getNavigator } from './navigators';
 
+function removeFrom<T>(element: T, list: T[]): boolean {
+  let index = list.indexOf(element);
+  if (index >= 0) {
+    list.splice(index, 1);
+    return true;
+  }
+  return false;
+}
+
+
 export class DymoPlayer {
 
   private currentPlayers = new Map<string,HierarchicalPlayer>();
@@ -13,7 +23,6 @@ export class DymoPlayer {
   private playingDymoUris: BehaviorSubject<string[]> = new BehaviorSubject([]);
 
   constructor(private store: SuperDymoStore, private scheduler: DymoScheduler) {
-    scheduler.setPlayer(this);
     this.store.setParameter(null, uris.LISTENER_ORIENTATION, 0);
     this.store.addParameterObserver(null, uris.LISTENER_ORIENTATION, this);
     this.store.addTypeObserver(uris.PLAY, this);
@@ -29,16 +38,18 @@ export class DymoPlayer {
 
   async play(dymoUri: string, afterUri?: string): Promise<any> {
     let newPlayer = new HierarchicalPlayer(dymoUri, this.store, null,
-      this.scheduler, true);
+      this.scheduler, this, true);
     this.currentPlayers.set(dymoUri, newPlayer);
     if (afterUri) {
       const ending = this.currentPlayers.get(afterUri).getEndingPromise();
       await ending; //TODO LETS SEE HOW WELL THIS WORKS!
     }
-    return newPlayer.play();
+    await newPlayer.play();
+    this.currentPlayers.delete(dymoUri);
   }
 
   stop(dymoUri?: string) {
+    console.log(this.currentPlayers, this.playingDymoUris.value, this.playingObjects)
     if (dymoUri && this.currentPlayers.has(dymoUri)) {
       this.currentPlayers.get(dymoUri).stop();
       this.currentPlayers.delete(dymoUri);
@@ -75,19 +86,10 @@ export class DymoPlayer {
   }
 
   objectEnded(object: ScheduledObject) {
-    if (this.removeFrom(object, this.playingObjects)) {
+    if (removeFrom(object, this.playingObjects)) {
       let uris = _.flatten(this.playingObjects.map(o => o.getUris()));
       this.updatePlayingDymoUris(uris);
     }
-  }
-
-  private removeFrom<T>(element: T, list: T[]): boolean {
-    let index = list.indexOf(element);
-    if (index >= 0) {
-      list.splice(index, 1);
-      return true;
-    }
-    return false;
   }
 
   async observedValueChanged(paramUri, paramType, value) {
@@ -116,8 +118,12 @@ export class HierarchicalPlayer {
 
   constructor(private dymoUri: string, private store: SuperDymoStore,
     private referenceObject: ScheduledObject, private scheduler: DymoScheduler,
-    private initRefTime: boolean
+    private dymoPlayer: DymoPlayer, private initRefTime: boolean
   ) {}
+
+  getStore() {
+    return this.store;
+  }
 
   getLastScheduledObject() {
     return _.last(this.scheduledObjects);
@@ -138,6 +144,15 @@ export class HierarchicalPlayer {
     this.partPlayers.forEach(p => p.stop());
     this.isPlaying = false;
     this.scheduledObjects.forEach(o => o.stop());
+  }
+
+  objectStarted(object: ScheduledObject) {
+    this.dymoPlayer.objectStarted(object);
+  }
+
+  objectEnded(object: ScheduledObject) {
+    removeFrom(object, this.scheduledObjects);
+    this.dymoPlayer.objectEnded(object);
   }
 
   getPosition() {
@@ -162,7 +177,7 @@ export class HierarchicalPlayer {
       if (next && next.uris) {
         console.log(next.uris)
         this.partPlayers = next.uris.map(p => new HierarchicalPlayer(
-          p, this.store, currentReference, this.scheduler,
+          p, this.store, currentReference, this.scheduler, this.dymoPlayer,
           next.initRefTime
         ));
         //TODO COMBINE THE ELSE BELOW WITH THIS!!!!
@@ -186,7 +201,7 @@ export class HierarchicalPlayer {
         try {
           //for now, only schedule audio if this has no parts
           this.addScheduledObjects(await Promise.all(next.uris.map(p =>
-            this.scheduler.schedule(p, currentReference, this.initRefTime))
+            this.scheduler.schedule(p, currentReference, this, this.initRefTime))
           ));
           return this.recursivePlay();
         } catch(err) {
@@ -203,8 +218,6 @@ export class HierarchicalPlayer {
   }
 
 }
-
-
 
 
 //USE CASES

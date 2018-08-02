@@ -1,17 +1,17 @@
-import { SuperDymoStore } from 'dymo-core';
-import { DymoPlayer } from './player';
+import { HierarchicalPlayer } from './player';
 
 
 export abstract class ScheduledObject {
 
+  protected store;
   protected parentUris;
 
-  constructor(protected dymoUri: string, protected store: SuperDymoStore,
-      protected player: DymoPlayer) {
+  constructor(protected dymoUri: string, protected player: HierarchicalPlayer) {
     this.init();
   }
 
   private async init() {
+    this.store = this.player.getStore();
     this.parentUris = await this.store.findAllParents(this.dymoUri);
   }
 
@@ -31,9 +31,8 @@ export abstract class ScheduledObject {
 
 export class DummyScheduledObject extends ScheduledObject {
 
-  constructor(dymoUri: string, store: SuperDymoStore, player: DymoPlayer,
-      delay: number) {
-    super(dymoUri, store, player);
+  constructor(dymoUri: string, player: HierarchicalPlayer, delay: number) {
+    super(dymoUri, player);
     this.player.objectStarted(this);
     setTimeout(() => this.player.objectEnded(this), delay);
   }
@@ -50,18 +49,10 @@ export class DummyScheduledObject extends ScheduledObject {
 
 export abstract class DymoScheduler {
 
-  protected player: DymoPlayer;
-  protected store: SuperDymoStore;
-
-  setPlayer(player: DymoPlayer) {
-    this.player = player;
-    this.store = player.getStore();
-  }
-
   abstract setListenerOrientation(posX, posY, posZ, forwX, forwY, forwZ);
 
   abstract schedule(dymoUri: string, previousObject: ScheduledObject,
-    initRefTime: boolean): Promise<ScheduledObject>;
+    player: HierarchicalPlayer, initRefTime: boolean): Promise<ScheduledObject>;
 
   abstract getAudioBank(): any;
 
@@ -73,11 +64,11 @@ export class DummyScheduler extends DymoScheduler {
 
   setListenerOrientation(posX, posY, posZ, forwX, forwY, forwZ) { }
 
-  schedule(dymoUri: string, previousObject: ScheduledObject): Promise<ScheduledObject> {
+  schedule(dymoUri: string, previousObject: ScheduledObject, player: HierarchicalPlayer): Promise<ScheduledObject> {
     return new Promise(resolve =>
       setTimeout(() => {
         console.log("scheduled", dymoUri);
-        resolve(new DummyScheduledObject(dymoUri, this.store, this.player, this.delay));
+        resolve(new DummyScheduledObject(dymoUri, player, this.delay));
       }, this.delay)
     );
   }

@@ -98,7 +98,6 @@ export class DymoPlayerManager {
     } else {
       this.dymoManager.getLoadedDymoUris().forEach(d => this.player.play(d));
     }
-    this.schedulo.start();
   }
 
   pause() {
@@ -112,7 +111,6 @@ export class DymoPlayerManager {
     } else {
       this.dymoManager.getLoadedDymoUris().forEach(d => this.player.stop(d));
     }
-    this.schedulo.stop();
   }
 
 }
