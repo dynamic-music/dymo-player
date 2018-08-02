@@ -3,13 +3,14 @@ import { SuperStore } from 'dymo-core';
 
 declare var self;
 
+const OBSERVER_FUNCS = ["addValueObserver", "addTypeObserver",
+  "addParameterObserver", "removeParameterObserver",
+  "addPartsObserver", "removePartsObserver"];
+
 const store = new SuperStore();
 
 registerPromiseWorker(message => {
-  if (message.function === "addParameterObserver"
-      || message.function === "addValueObserver"
-      || message.function === "addTypeObserver"
-      || message.function === "addPartsObserver") {
+  if (OBSERVER_FUNCS.indexOf(message.function) >= 0) {
     message.args[message.args.length-1] = self;
   }
   return store[message.function](...message.args);

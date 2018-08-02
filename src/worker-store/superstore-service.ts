@@ -7,6 +7,7 @@ export class WorkerStoreService implements SuperDymoStore {
 
   private worker: PromiseWorker;
   private observers = new Map<string, Observer[]>();
+  private paramUris = new Map<string, string>();
 
   constructor(fetcher?: Fetcher) {
     this.worker = new PromiseWorker(new SuperStoreWorker());//new Worker(workerPath);
@@ -49,19 +50,18 @@ export class WorkerStoreService implements SuperDymoStore {
 
   async addParameterObserver(dymoUri: string, parameterType: string, observer: ValueObserver): Promise<string> {
     const paramUri = await this.worker.postMessage({function:'addParameterObserver', args:[dymoUri, parameterType, null]});
+    this.paramUris.set(dymoUri+parameterType, paramUri);
     this.addObserver(observer, paramUri);
     return paramUri;
   }
 
   async removeParameterObserver(dymoUri: string, parameterType: string, observer: ValueObserver): Promise<string> {
-    const paramUri = await this.worker.postMessage({function:'removeParameterObserver', args:[dymoUri, parameterType, null]});
-    this.removeObserver(observer, paramUri);
+    const paramUri = this.paramUris.get(dymoUri+parameterType);
+    if (this.removeObserver(observer, paramUri)) {
+      //none left for this paramUri
+      await this.worker.postMessage({function:'removeParameterObserver', args:[dymoUri, parameterType, null]});
+    }
     return paramUri;
-  }
-
-  addTypeObserver(type: string, observer: ValueObserver) {
-    this.addObserver(observer, type);
-    return this.worker.postMessage({function:'addTypeObserver', args:[type, null]});
   }
 
   addPartsObserver(dymoUri: string, observer: PartsObserver) {
@@ -70,8 +70,10 @@ export class WorkerStoreService implements SuperDymoStore {
   }
 
   removePartsObserver(dymoUri: string, observer: PartsObserver) {
-    this.removeObserver(observer, dymoUri);
-    return this.worker.postMessage({function:'removePartsObserver', args:[dymoUri, null]});
+    if (this.removeObserver(observer, dymoUri)) {
+      //none left for this dymoUri
+      return this.worker.postMessage({function:'removePartsObserver', args:[dymoUri, null]});
+    }
   }
 
   addRendering(renderingUri: string, dymoUri: string) {
@@ -192,6 +194,11 @@ export class WorkerStoreService implements SuperDymoStore {
     return this.worker.postMessage({function:'addValueObserver', args:[subject, predicate, null]});
   }
 
+  addTypeObserver(type: string, observer: ValueObserver) {
+    this.addObserver(observer, type);
+    return this.worker.postMessage({function:'addTypeObserver', args:[type, null]});
+  }
+
   getValueObserverCount(): Promise<number> {
     return this.worker.postMessage({function:'getValueObserverCount', args:[]});
   }
@@ -259,12 +266,14 @@ export class WorkerStoreService implements SuperDymoStore {
     this.observers.get(uriOrType).push(observer);
   }
 
-  private removeObserver(observer: Observer, uriOrType: string): void {
+  /** returns true if it was the last observer for the given uriOrType */
+  private removeObserver(observer: Observer, uriOrType: string): boolean {
     const observers = this.observers.get(uriOrType);
     if (observers) {
-      observers.slice(observers.indexOf(observer), 1);
+      observers.splice(observers.indexOf(observer), 1);
       if (observers.length == 0) {
         this.observers.delete(uriOrType);
+        return true;
       }
     }
   }

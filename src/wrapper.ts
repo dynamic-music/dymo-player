@@ -28,6 +28,7 @@ export class ScheduloScheduledObject extends ScheduledObject {
   private attributeToType = new Map<string,string>();
   private attributeToValue = new Map<string,number>();
   private attributeToValueAfterBehavior = new Map<string,number>();
+  private observedParams: [string, string][] = [];
   private object: AudioObject;
   private ready: Promise<any>;
 
@@ -38,6 +39,7 @@ export class ScheduloScheduledObject extends ScheduledObject {
   }
 
   private async init2() {
+    console.log("BEFORE", await this.store.getValueObserverCount())
     this.ready = Promise.all([...PAIRINGS.keys()].map(async (typeUri) => {
       await this.initAttribute(this.dymoUri, typeUri);
       //if behavior not independent, init parent attributes
@@ -56,6 +58,7 @@ export class ScheduloScheduledObject extends ScheduledObject {
       attributeUri = await this.store.setFeature(dymoUri, typeUri);
     } else {
       attributeUri = await this.store.addParameterObserver(dymoUri, typeUri, this);
+      this.observedParams.push([dymoUri, typeUri]);
     }
     let value = await this.store.findAttributeValue(dymoUri, typeUri);
     this.dymoToParam.set(dymoUri, attributeUri);
@@ -68,7 +71,7 @@ export class ScheduloScheduledObject extends ScheduledObject {
   setScheduloObject(object: AudioObject) {
     this.object = object;
     this.object.on('playing', () => this.player.objectStarted(this));
-    this.object.on('stopped', () => this.player.objectEnded(this));
+    this.object.on('stopped', this.stopped.bind(this));
     this.attributeToValueAfterBehavior.forEach((value, typeUri) =>
       this.setObjectParam(typeUri, value));
   }
@@ -86,16 +89,25 @@ export class ScheduloScheduledObject extends ScheduledObject {
     return this.attributeToValueAfterBehavior.get(paramUri);
   }
 
+  //done playing naturally (schedulo)
+  private async stopped() {
+    this.player.objectEnded(this);
+    await this.removeFromObservers();
+    console.log("AFTER", await this.store.getValueObserverCount())
+  }
+
+  //stopped from above (dymo player)
   stop() {
     if (this.object) {
       this.object.stop(Time.Asap, Stop.Asap);
     }
-    PAIRINGS.forEach((attribute, typeUri) => {
-      if (FEATURES.indexOf(typeUri) >= 0) {
-        this.store.removeParameterObserver(this.dymoUri, typeUri, this);
-        //TODO REMOVE OBSERVERS FOR ALL PARENTS!!!!!!
-      }
-    })
+    this.removeFromObservers();
+  }
+
+  private async removeFromObservers() {
+    return Promise.all(this.observedParams.map(([dymoUri, typeUri]) =>
+      this.store.removeParameterObserver(dymoUri, typeUri, this)
+    ));
   }
 
   private updateObjectParam(typeUri: string) {
