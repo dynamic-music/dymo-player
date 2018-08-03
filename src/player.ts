@@ -37,25 +37,30 @@ export class DymoPlayer {
   }
 
   async play(dymoUri: string, afterUri?: string): Promise<any> {
-    let newPlayer = new HierarchicalPlayer(dymoUri, this.store, null,
-      this.scheduler, this, true);
-    this.currentPlayers.set(dymoUri, newPlayer);
-    if (afterUri) {
-      const ending = this.currentPlayers.get(afterUri).getEndingPromise();
-      await ending; //TODO LETS SEE HOW WELL THIS WORKS!
+    if (!this.currentPlayers.has(dymoUri)) {
+      let newPlayer = new HierarchicalPlayer(dymoUri, this.store, null,
+        this.scheduler, this, true);
+      this.currentPlayers.set(dymoUri, newPlayer);
+      if (afterUri) {
+        const ending = this.currentPlayers.get(afterUri).getEndingPromise();
+        await ending; //TODO LETS SEE HOW WELL THIS WORKS!
+      }
+      await newPlayer.play();
+      this.currentPlayers.delete(dymoUri);
     }
-    await newPlayer.play();
-    this.currentPlayers.delete(dymoUri);
   }
 
-  stop(dymoUri?: string) {
-    console.log(this.currentPlayers, this.playingDymoUris.value, this.playingObjects)
+  async stop(dymoUri?: string) {
+    //console.log(this.currentPlayers, this.playingDymoUris.value, this.playingObjects)
     if (dymoUri && this.currentPlayers.has(dymoUri)) {
-      this.currentPlayers.get(dymoUri).stop();
+      await this.currentPlayers.get(dymoUri).stop();
       this.currentPlayers.delete(dymoUri);
     } else {
-      Array.from(this.currentPlayers.values()).forEach(p => p.stop());
+      const players = Array.from(this.currentPlayers.values())
+      await Promise.all(players.map(p => p.stop()));
       this.currentPlayers = new Map<string,HierarchicalPlayer>();
+      this.playingObjects = [];
+      this.updatePlayingDymoUris([]);
     }
   }
 
@@ -140,10 +145,10 @@ export class HierarchicalPlayer {
     return this.endingPromise;
   }
 
-  stop() {
-    this.partPlayers.forEach(p => p.stop());
+  async stop() {
+    await Promise.all(this.partPlayers.map(p => p.stop()));
     this.isPlaying = false;
-    this.scheduledObjects.forEach(o => o.stop());
+    return Promise.all(this.scheduledObjects.map(o => o.stop()));
   }
 
   objectStarted(object: ScheduledObject) {

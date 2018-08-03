@@ -7,8 +7,7 @@ import { HierarchicalPlayer } from './player';
 export class ScheduloScheduler extends DymoScheduler {
 
   private schedulo: Schedulo;
-  private isStarted: boolean;
-  private isPaused: boolean;
+  private paused = false;
 
   constructor(scheduleAheadTime: number, loadAheadTime: number, fadeLength: number) {
     super();
@@ -19,31 +18,15 @@ export class ScheduloScheduler extends DymoScheduler {
       },
       fadeLength
     );
-    this.start();
   }
 
-  start() {
-    if (!this.isStarted) {
-      this.isStarted = true;
-      this.schedulo.start();
-    }
+  isPaused() {
+    return this.paused;
   }
 
   pause() {
-    if (this.isStarted && !this.isPaused) {
-      this.isPaused = true;
-      this.schedulo.pause();
-    } else if (this.isStarted) {
-      this.isPaused = false;
-      this.schedulo.start();
-    }
-  }
-
-  stop() {
-    if (this.isStarted) {
-      this.isStarted = false;
-      this.schedulo.stop();
-    }
+    this.paused = !this.paused;
+    this.schedulo.pause();
   }
 
   setListenerOrientation(posX, posY, posZ, forwX, forwY, forwZ) {
@@ -57,8 +40,6 @@ export class ScheduloScheduler extends DymoScheduler {
   async schedule(dymoUri: string, previousObject: ScheduloScheduledObject, player: HierarchicalPlayer): Promise<ScheduloScheduledObject> {
 
     if (!dymoUri) return Promise.reject('no dymoUri given');
-
-    console.log("SCHEDULE")
 
     const newObject = new ScheduloScheduledObject(dymoUri, previousObject, player);
 

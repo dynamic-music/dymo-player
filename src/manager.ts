@@ -79,24 +79,24 @@ export class DymoPlayerManager {
     this.scheduler.syncNavigators(this.addContext(syncDymo), this.addContext(goalDymo), level);
   }*/
 
-  startPlayingUri(dymoUri: string, afterUri?: string) {
-    this.player.play(this.addContext(dymoUri), afterUri);
+  playUri(dymoUri: string, afterUri?: string) {
+    return this.player.play(this.addContext(dymoUri), afterUri);
   }
 
-  stopPlayingUri(dymoUri) {
-    this.player.stop(this.addContext(dymoUri));
+  stopUri(dymoUri) {
+    return this.player.stop(this.addContext(dymoUri));
   }
 
-  private addContext(uri: string): string {
-    return uri.indexOf(uris.CONTEXT_URI) < 0 ? uris.CONTEXT_URI + uri : uri;
-  }
-
-  startPlaying() {
-    const rendering = this.dymoManager.getRendering();
-    if (rendering) {
-      rendering.play();
+  play() {
+    if (this.schedulo.isPaused()) {
+      this.schedulo.pause();
     } else {
-      this.dymoManager.getLoadedDymoUris().forEach(d => this.player.play(d));
+      const rendering = this.dymoManager.getRendering();
+      if (rendering) {
+        this.playUri(rendering.getDymoUri());
+      } else {
+        this.dymoManager.getLoadedDymoUris().forEach(d => this.playUri(d));
+      }
     }
   }
 
@@ -104,13 +104,20 @@ export class DymoPlayerManager {
     this.schedulo.pause();
   }
 
-  stopPlaying() {
+  async stop() {
     const rendering = this.dymoManager.getRendering();
     if (rendering) {
-      rendering.stop();
+      await this.stopUri(rendering.getDymoUri());
     } else {
-      this.dymoManager.getLoadedDymoUris().forEach(d => this.player.stop(d));
+      await Promise.all(this.dymoManager.getLoadedDymoUris().map(d => this.stopUri(d)));
     }
+    if (this.schedulo.isPaused()) {
+      this.schedulo.pause();
+    }
+  }
+
+  private addContext(uri: string): string {
+    return uri.indexOf(uris.CONTEXT_URI) < 0 ? uris.CONTEXT_URI + uri : uri;
   }
 
 }

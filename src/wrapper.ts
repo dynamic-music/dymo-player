@@ -39,7 +39,6 @@ export class ScheduloScheduledObject extends ScheduledObject {
   }
 
   private async init2() {
-    console.log("BEFORE", await this.store.getValueObserverCount())
     this.ready = Promise.all([...PAIRINGS.keys()].map(async (typeUri) => {
       await this.initAttribute(this.dymoUri, typeUri);
       //if behavior not independent, init parent attributes
@@ -93,7 +92,6 @@ export class ScheduloScheduledObject extends ScheduledObject {
   private async stopped() {
     this.player.objectEnded(this);
     await this.removeFromObservers();
-    console.log("AFTER", await this.store.getValueObserverCount())
   }
 
   //stopped from above (dymo player)
@@ -101,7 +99,7 @@ export class ScheduloScheduledObject extends ScheduledObject {
     if (this.object) {
       this.object.stop(Time.Asap, Stop.Asap);
     }
-    this.removeFromObservers();
+    return this.removeFromObservers();
   }
 
   private async removeFromObservers() {

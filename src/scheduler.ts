@@ -25,7 +25,7 @@ export abstract class ScheduledObject {
 
   abstract async getParam(paramUri: string): Promise<number>;
 
-  abstract stop(): void;
+  abstract stop(): Promise<any>;
 
 }
 
@@ -42,7 +42,7 @@ export class DummyScheduledObject extends ScheduledObject {
   }
 
   stop() {
-    this.player.objectEnded(this);
+    return Promise.resolve(this.player.objectEnded(this));
   }
 
 }
