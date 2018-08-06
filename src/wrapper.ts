@@ -1,6 +1,6 @@
 import { AudioObject, Parameter, Time, Stop } from 'schedulo';
 import { uris } from 'dymo-core';
-import { HierarchicalPlayer } from './player';
+import { HierarchicalPlayer } from './players';
 import { ScheduledObject } from './scheduler';
 
 //list of used features to speed up init

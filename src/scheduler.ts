@@ -1,4 +1,4 @@
-import { HierarchicalPlayer } from './player';
+import { HierarchicalPlayer } from './players';
 
 
 export abstract class ScheduledObject {

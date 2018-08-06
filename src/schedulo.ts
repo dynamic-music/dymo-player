@@ -2,7 +2,7 @@ import { Schedulo, Time, Playback } from 'schedulo';
 import { uris } from 'dymo-core';
 import { DymoScheduler } from './scheduler';
 import { ScheduloScheduledObject } from './wrapper';
-import { HierarchicalPlayer } from './player';
+import { HierarchicalPlayer } from './players';
 
 export class ScheduloScheduler extends DymoScheduler {
 

@@ -16,7 +16,7 @@ function removeFrom<T>(element: T, list: T[]): boolean {
 }
 
 
-export class DymoPlayer {
+export class MultiPlayer {
 
   private currentPlayers = new Map<string,HierarchicalPlayer>();
   private playingObjects: ScheduledObject[] = [];
@@ -123,7 +123,7 @@ export class HierarchicalPlayer {
 
   constructor(private dymoUri: string, private store: SuperDymoStore,
     private referenceObject: ScheduledObject, private scheduler: DymoScheduler,
-    private dymoPlayer: DymoPlayer, private initRefTime: boolean
+    private dymoPlayer: MultiPlayer, private initRefTime: boolean
   ) {}
 
   getStore() {

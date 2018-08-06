@@ -1,18 +1,18 @@
 import { Observable } from 'rxjs/Observable';
 import { ScheduloScheduler } from './schedulo';
 import { uris, Fetcher, LoadedStuff } from 'dymo-core';
-import { DymoPlayer } from './player';
+import { MultiPlayer } from './players';
 import { WorkerStoreService } from './worker-store/superstore-service';
 import { DymoManager } from 'dymo-core';
 
 /**
- * A class for easy access of all dymo core functionality.
+ * A class for easy access of all dymo player functionality.
  */
-export class DymoPlayerManager {
+export class DymoPlayer {
 
   private dymoManager: DymoManager;
   private schedulo: ScheduloScheduler;
-  private player: DymoPlayer;
+  private player: MultiPlayer;
 
   constructor(useWorkers: boolean, private preloadBuffers = true, private scheduleAheadTime = 1,
       private loadAheadTime = 3, private fadeLength = 0.01, fetcher?: Fetcher) {
@@ -23,7 +23,7 @@ export class DymoPlayerManager {
   async init(ontologiesPath?: string): Promise<any> {
     await this.dymoManager.init(ontologiesPath);
     this.schedulo = new ScheduloScheduler(this.scheduleAheadTime, this.loadAheadTime, this.fadeLength);
-    this.player = new DymoPlayer(this.dymoManager.getStore(), this.schedulo);
+    this.player = new MultiPlayer(this.dymoManager.getStore(), this.schedulo);
   }
 
   async loadDymo(...fileUris: string[]): Promise<LoadedStuff> {

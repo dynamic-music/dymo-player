@@ -1,1 +1,1 @@
-export { DymoPlayerManager } from './manager';
+export { DymoPlayer } from './main';
