@@ -15,7 +15,7 @@ export class DymoPlayer {
   private player: MultiPlayer;
 
   constructor(useWorkers: boolean, private preloadBuffers = true, private scheduleAheadTime = 1,
-      private loadAheadTime = 3, private fadeLength = 0.01, fetcher?: Fetcher) {
+      private loadAheadTime = 3, private fadeLength = 0.01, fetcher?: Fetcher, private loggingOn = false) {
     const workerStore = useWorkers ? new WorkerStoreService(fetcher) : null;
     this.dymoManager = new DymoManager(workerStore, fetcher);
   }
@@ -23,7 +23,7 @@ export class DymoPlayer {
   async init(ontologiesPath?: string): Promise<any> {
     await this.dymoManager.init(ontologiesPath);
     this.schedulo = new ScheduloScheduler(this.scheduleAheadTime, this.loadAheadTime, this.fadeLength);
-    this.player = new MultiPlayer(this.dymoManager.getStore(), this.schedulo);
+    this.player = new MultiPlayer(this.dymoManager.getStore(), this.schedulo, this.loggingOn);
   }
 
   async loadDymo(...fileUris: string[]): Promise<LoadedStuff> {

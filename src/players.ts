@@ -22,7 +22,8 @@ export class MultiPlayer {
   private playingObjects: ScheduledObject[] = [];
   private playingDymoUris: BehaviorSubject<string[]> = new BehaviorSubject([]);
 
-  constructor(private store: SuperDymoStore, private scheduler: DymoScheduler) {
+  constructor(private store: SuperDymoStore, private scheduler: DymoScheduler,
+    private loggingOn = false) {
     this.store.setParameter(null, uris.LISTENER_ORIENTATION, 0);
     this.store.addParameterObserver(null, uris.LISTENER_ORIENTATION, this);
     this.store.addTypeObserver(uris.PLAY, this);
@@ -34,6 +35,10 @@ export class MultiPlayer {
 
   getAudioBank() {
     return this.scheduler.getAudioBank();
+  }
+
+  isLoggingOn() {
+    return this.loggingOn;
   }
 
   async play(dymoUri: string, afterUri?: string): Promise<any> {
@@ -65,7 +70,9 @@ export class MultiPlayer {
   }
 
   getPosition(dymoUri: string) {
-    return this.currentPlayers.get(dymoUri).getPosition();
+    if (this.currentPlayers.has(dymoUri)) {
+      return this.currentPlayers.get(dymoUri).getPosition();
+    }
   }
 
   getPlayingDymoUrisArray(): string[] {
@@ -180,7 +187,7 @@ export class HierarchicalPlayer {
 
     if (await this.navigator.hasParts()) {
       if (next && next.uris) {
-        console.log(next.uris)
+        if (this.dymoPlayer.isLoggingOn()) console.log(next.uris);
         this.partPlayers = next.uris.map(p => new HierarchicalPlayer(
           p, this.store, currentReference, this.scheduler, this.dymoPlayer,
           next.initRefTime
