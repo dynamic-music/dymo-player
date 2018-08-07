@@ -60,6 +60,10 @@ export class DymoPlayer {
     }
   }
 
+  isPlaying(dymoUri: string) {
+    return this.player ? this.player.isPlaying(dymoUri) : false;
+  }
+
   getPosition(dymoUri: string) {
     if (this.player) {
       return this.player.getPosition(dymoUri);
