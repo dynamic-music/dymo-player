@@ -59,16 +59,19 @@ export class ScheduloScheduler extends DymoScheduler {
 
     //console.log(dymoUri, startTime)
 
-    return this.schedulo.scheduleAudio(
-      [await player.getStore().getSourcePath(dymoUri)],
-      startTime,
-      Playback.Oneshot()
-    ).then(audioObject => new Promise<ScheduloScheduledObject>(resolve => {
-      newObject.setScheduloObject(audioObject[0]);
-      newObject.getScheduloObject().on('loaded', ()=>{
-        resolve(newObject);
+    if (await newObject.isEvent()) {
+      const triggerFunction = await newObject.getTriggerFunction();
+      const eventObject = this.schedulo.scheduleEvent(triggerFunction, startTime);
+      newObject.setScheduloObject(eventObject);
+      return newObject;
+    } else {
+      const audio = await newObject.getSourcePath();
+      const audioObject = this.schedulo.scheduleAudio([audio], startTime, Playback.Oneshot())[0];
+      newObject.setScheduloObject(audioObject);
+      //only resolve when audio loaded
+      return new Promise<ScheduloScheduledObject>(resolve => {
+        audioObject.on('loaded', () => resolve(newObject));
       });
-      //resolve(newObject);
-    }));
+    }
   }
 }

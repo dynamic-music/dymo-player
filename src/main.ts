@@ -21,26 +21,33 @@ export class DymoPlayer {
   }
 
   async init(ontologiesPath?: string): Promise<any> {
+    if (this.loggingOn) console.log("INIT PLAYER")
     await this.dymoManager.init(ontologiesPath);
     this.schedulo = new ScheduloScheduler(this.scheduleAheadTime, this.loadAheadTime, this.fadeLength);
     this.player = new MultiPlayer(this.dymoManager.getStore(), this.schedulo, this.loggingOn);
   }
 
   async loadDymo(...fileUris: string[]): Promise<LoadedStuff> {
+    if (this.loggingOn) console.log("LOADING", ...fileUris)
     const loaded = await this.dymoManager.loadIntoStore(...fileUris);
     if (this.preloadBuffers) {
       const paths = await this.dymoManager.getStore().getAllSourcePaths();
       await this.schedulo.getAudioBank().preloadBuffers(paths)
     }
+    if (this.loggingOn) console.log("DONE LOADING")
+    if (this.loggingOn) console.log("store size", await this.dymoManager.getStore().size());
     return loaded;
   }
 
   async loadDymoFromString(dymo: string): Promise<LoadedStuff> {
+    if (this.loggingOn) console.log("LOADING")
     const loaded = await this.dymoManager.loadIntoStoreFromString(dymo);
     if (this.preloadBuffers) {
       const paths = await this.dymoManager.getStore().getAllSourcePaths();
       await this.schedulo.getAudioBank().preloadBuffers(paths)
     }
+    if (this.loggingOn) console.log("DONE LOADING")
+    if (this.loggingOn) console.log("store size", await this.dymoManager.getStore().size());
     return loaded;
   }
 
@@ -70,20 +77,8 @@ export class DymoPlayer {
     }
   }
 
-  /*updateNavigatorPosition(dymoUri, level, position) {
-    this.player.updateNavigatorPosition(this.addContext(dymoUri), level, position);
-  }*/
-
-  /*getNavigatorPosition(dymoUri): number {
-    return this.player.getNavigatorPosition(this.addContext(dymoUri));
-  }*/
-
-  /*//sync the first navigator for syncDymo to the position of the first for goalDymo on the given level
-  syncNavigators(syncDymo, goalDymo, level) {
-    this.scheduler.syncNavigators(this.addContext(syncDymo), this.addContext(goalDymo), level);
-  }*/
-
   playUri(dymoUri: string, afterUri?: string) {
+    if (this.loggingOn) console.log("PLAYING", dymoUri)
     return this.player.play(this.addContext(dymoUri), afterUri);
   }
 

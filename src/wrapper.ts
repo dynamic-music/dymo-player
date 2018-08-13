@@ -1,4 +1,4 @@
-import { AudioObject, Parameter, Time, Stop } from 'schedulo';
+import { ScheduloObject, Parameter, Time, Stop } from 'schedulo';
 import { uris } from 'dymo-core';
 import { HierarchicalPlayer } from './players';
 import { ScheduledObject } from './scheduler';
@@ -29,7 +29,7 @@ export class ScheduloScheduledObject extends ScheduledObject {
   private attributeToValue = new Map<string,number>();
   private attributeToValueAfterBehavior = new Map<string,number>();
   private observedParams: [string, string][] = [];
-  private object: AudioObject;
+  private object: ScheduloObject;
   private ready: Promise<any>;
 
   constructor(dymoUri: string, private previousObject: ScheduloScheduledObject,
@@ -67,7 +67,22 @@ export class ScheduloScheduledObject extends ScheduledObject {
     //}
   }
 
-  setScheduloObject(object: AudioObject) {
+  async getSourcePath() {
+    return this.store.getSourcePath(this.dymoUri);
+  }
+
+  async isEvent() {
+    const type = await this.store.findObject(this.dymoUri, uris.TYPE);
+    return type == uris.EVENT;
+  }
+
+  async getTriggerFunction() {
+    const target = await this.store.findObject(this.dymoUri, uris.HAS_TARGET);
+    const value = await this.store.findObjectValue(this.dymoUri, uris.VALUE);
+    return () => this.store.setValue(target, uris.VALUE, value);
+  }
+
+  setScheduloObject(object: ScheduloObject) {
     this.object = object;
     this.object.on('playing', () => this.player.objectStarted(this));
     this.object.on('stopped', this.stopped.bind(this));
@@ -75,7 +90,7 @@ export class ScheduloScheduledObject extends ScheduledObject {
       this.setObjectParam(typeUri, value));
   }
 
-  getScheduloObject(): AudioObject {
+  getScheduloObject(): ScheduloObject {
     return this.object;
   }
 

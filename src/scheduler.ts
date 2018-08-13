@@ -1,10 +1,11 @@
+import { SuperDymoStore } from 'dymo-core';
 import { HierarchicalPlayer } from './players';
 
 
 export abstract class ScheduledObject {
 
-  protected store;
-  protected parentUris;
+  protected store: SuperDymoStore;
+  protected parentUris: string[];
 
   constructor(protected dymoUri: string, protected player: HierarchicalPlayer) {
     this.init();
@@ -52,7 +53,7 @@ export abstract class DymoScheduler {
   abstract setListenerOrientation(posX, posY, posZ, forwX, forwY, forwZ);
 
   abstract schedule(dymoUri: string, previousObject: ScheduledObject,
-    player: HierarchicalPlayer, initRefTime: boolean): Promise<ScheduledObject>;
+    player: HierarchicalPlayer): Promise<ScheduledObject>;
 
   abstract getAudioBank(): any;
 

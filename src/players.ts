@@ -44,14 +44,14 @@ export class MultiPlayer {
   async play(dymoUri: string, afterUri?: string): Promise<any> {
     if (!this.currentPlayers.has(dymoUri)) {
       let newPlayer = new HierarchicalPlayer(dymoUri, this.store, null,
-        this.scheduler, this, true);
+        this.scheduler, this);
       this.currentPlayers.set(dymoUri, newPlayer);
       if (afterUri) {
         const ending = this.currentPlayers.get(afterUri).getEndingPromise();
         await ending; //TODO LETS SEE HOW WELL THIS WORKS!
       }
       await newPlayer.play();
-      this.currentPlayers.delete(dymoUri);
+      //this.currentPlayers.delete(dymoUri);
     }
   }
 
@@ -134,8 +134,7 @@ export class HierarchicalPlayer {
 
   constructor(private dymoUri: string, private store: SuperDymoStore,
     private referenceObject: ScheduledObject, private scheduler: DymoScheduler,
-    private dymoPlayer: MultiPlayer, private initRefTime: boolean
-  ) {}
+    private dymoPlayer: MultiPlayer) {}
 
   getStore() {
     return this.store;
@@ -193,9 +192,7 @@ export class HierarchicalPlayer {
       if (next && next.uris) {
         if (this.dymoPlayer.isLoggingOn()) console.log(next.uris);
         this.partPlayers = next.uris.map(p => new HierarchicalPlayer(
-          p, this.store, currentReference, this.scheduler, this.dymoPlayer,
-          next.initRefTime
-        ));
+          p, this.store, currentReference, this.scheduler, this.dymoPlayer));
         //TODO COMBINE THE ELSE BELOW WITH THIS!!!!
         this.addScheduledObjects(await Promise.all(
           this.partPlayers.map(p => p.play())
@@ -217,7 +214,7 @@ export class HierarchicalPlayer {
         try {
           //for now, only schedule audio if this has no parts
           this.addScheduledObjects(await Promise.all(next.uris.map(p =>
-            this.scheduler.schedule(p, currentReference, this, this.initRefTime))
+            this.scheduler.schedule(p, currentReference, this))
           ));
           return this.recursivePlay();
         } catch(err) {
