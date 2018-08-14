@@ -72,8 +72,8 @@ export class ScheduloScheduledObject extends ScheduledObject {
   }
 
   async isEvent() {
-    const type = await this.store.findObject(this.dymoUri, uris.TYPE);
-    return type == uris.EVENT;
+    const type = await this.store.findObject(this.dymoUri, uris.CDT);
+    return type === uris.EVENT;
   }
 
   async getTriggerFunction() {
