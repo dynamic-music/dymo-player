@@ -23,10 +23,10 @@
   },
   "homepage": "https://github.com/dynamic-music/dymo-player#readme",
   "dependencies": {
-    "dymo-core": "git://github.com/dynamic-music/dymo-core.git",
+    "dymo-core": "github:dynamic-music/dymo-core#fd3f923b70d05ce84bdee7946b166ceb2b51b7c9",
     "natsort": "^1.0.6",
     "promise-worker": "^1.1.1",
-    "schedulo": "git://github.com/dynamic-music/schedulo.git",
+    "schedulo": "github:dynamic-music/schedulo#7f1e63d407f2af54dd987f00969195bc8392380d",
     "worker-loader": "^2.0.0"
   },
   "devDependencies": {

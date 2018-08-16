@@ -174,7 +174,7 @@ export class ScheduloScheduledObject extends ScheduledObject {
             value = value+this.previousObject.getDuration();
           }
         }
-        //console.log(typeUri, value);
+        //console.log(this.dymoUri, typeUri, value);
         this.object.set(target, value);
       }
     }
