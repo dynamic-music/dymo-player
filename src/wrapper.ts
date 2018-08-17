@@ -20,6 +20,7 @@ PAIRINGS.set(uris.REVERB, Parameter.Reverb);
 PAIRINGS.set(uris.DELAY, Parameter.Delay);
 //PAIRINGS.set(uris.LOOP, Parameter.Loop);
 PAIRINGS.set(uris.PLAYBACK_RATE, Parameter.PlaybackRate);
+PAIRINGS.set(uris.TIME_STRETCH_RATIO, Parameter.TimeStretchRatio);
 
 export class ScheduloScheduledObject extends ScheduledObject {
 

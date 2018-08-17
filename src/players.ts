@@ -51,7 +51,7 @@ export class MultiPlayer {
         await ending; //TODO LETS SEE HOW WELL THIS WORKS!
       }
       await newPlayer.play();
-      //this.currentPlayers.delete(dymoUri);
+      this.currentPlayers.delete(dymoUri);
     }
   }
 
