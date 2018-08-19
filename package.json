@@ -26,7 +26,7 @@
     "dymo-core": "github:dynamic-music/dymo-core#fd3f923b70d05ce84bdee7946b166ceb2b51b7c9",
     "natsort": "^1.0.6",
     "promise-worker": "^1.1.1",
-    "schedulo": "github:dynamic-music/schedulo#5a1dcd70268e46a880792639b776891bc9de2aaa",
+    "schedulo": "github:dynamic-music/schedulo#cbeded5cece6f829bf3c98ffdbf53f6cda878ace",
     "worker-loader": "^2.0.0"
   },
   "devDependencies": {
