@@ -152,12 +152,8 @@ export class WorkerStoreService implements SuperDymoStore {
     return this.worker.postMessage({function:'findAttributeValue', args:[ownerUri, attributeType]});
   }
 
-  async setControlParam(controlUri: string, parameterType: string, value: any, observer?: Observer): Promise<string> {
-    const paramUri = await this.worker.postMessage({function:'setControlParam', args:[controlUri, parameterType, value, observer]});
-    if (observer) {
-      this.addObserver(observer, paramUri);
-    }
-    return paramUri;
+  async setControlParam(controlUri: string, parameterType: string, value: any): Promise<string> {
+    return this.worker.postMessage({function:'setControlParam', args:[controlUri, parameterType, value]});
   }
 
   findControlParamValue(controlUri: string, parameterType: string): Promise<any> {
