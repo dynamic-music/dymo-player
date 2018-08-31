@@ -4,6 +4,7 @@ import { uris, Fetcher, LoadedStuff } from 'dymo-core';
 import { MultiPlayer } from './players';
 import { WorkerStoreService } from './worker-store/superstore-service';
 import { DymoManager } from 'dymo-core';
+import { AudioBank } from 'schedulo';
 
 /**
  * A class for easy access of all dymo player functionality.
@@ -61,10 +62,8 @@ export class DymoPlayer {
     }
   }
 
-  getAudioBank() {
-    if (this.player) {
-      return this.player.getAudioBank();
-    }
+  getAudioBank(): AudioBank {
+    return this.schedulo.getAudioBank();
   }
 
   isPlaying(dymoUri: string) {

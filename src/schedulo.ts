@@ -33,7 +33,7 @@ export class ScheduloScheduler extends DymoScheduler {
     //TODO SET ON SCHEDULO!!!
   }
 
-  getAudioBank(): any {
+  getAudioBank() {
     return this.schedulo.getAudioBank();
   }
 
@@ -74,4 +74,5 @@ export class ScheduloScheduler extends DymoScheduler {
       });
     }
   }
+
 }

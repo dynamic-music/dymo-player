@@ -33,10 +33,6 @@ export class MultiPlayer {
     return this.store;
   }
 
-  getAudioBank() {
-    return this.scheduler.getAudioBank();
-  }
-
   isLoggingOn() {
     return this.loggingOn;
   }

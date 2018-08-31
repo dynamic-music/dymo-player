@@ -55,8 +55,6 @@ export abstract class DymoScheduler {
   abstract schedule(dymoUri: string, previousObject: ScheduledObject,
     player: HierarchicalPlayer): Promise<ScheduledObject>;
 
-  abstract getAudioBank(): any;
-
 }
 
 export class DummyScheduler extends DymoScheduler {
@@ -72,10 +70,6 @@ export class DummyScheduler extends DymoScheduler {
         resolve(new DummyScheduledObject(dymoUri, player, this.delay));
       }, this.delay)
     );
-  }
-
-  getAudioBank(): any {
-    return null;
   }
 
 }
