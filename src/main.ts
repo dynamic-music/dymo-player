@@ -6,6 +6,17 @@ import { WorkerStoreService } from './worker-store/superstore-service';
 import { DymoManager } from 'dymo-core';
 import { AudioBank } from 'schedulo';
 
+export interface PlayerOptions {
+  useWorkers: boolean,
+  preloadBuffers?: boolean,
+  scheduleAheadTime?: number,
+  loadAheadTime?: number,
+  ignoreInaudible?: boolean,
+  fadeLength?: number,
+  fetcher?: Fetcher,
+  loggingOn?: boolean
+}
+
 /**
  * A class for easy access of all dymo player functionality.
  */
@@ -15,41 +26,40 @@ export class DymoPlayer {
   private schedulo: ScheduloScheduler;
   private player: MultiPlayer;
 
-  constructor(useWorkers: boolean, private preloadBuffers = true, private scheduleAheadTime = 1,
-      private loadAheadTime = 3, private fadeLength = 0.01, fetcher?: Fetcher, private loggingOn = false) {
-    const workerStore = useWorkers ? new WorkerStoreService(fetcher) : null;
-    this.dymoManager = new DymoManager(workerStore, fetcher);
+  constructor(private options: PlayerOptions) {
+    const workerStore = options.useWorkers ? new WorkerStoreService(options.fetcher) : null;
+    this.dymoManager = new DymoManager(workerStore, options.fetcher);
   }
 
   async init(ontologiesPath?: string): Promise<any> {
-    if (this.loggingOn) console.log("INIT PLAYER")
+    if (this.options.loggingOn) console.log("INIT PLAYER")
     await this.dymoManager.init(ontologiesPath);
-    this.schedulo = new ScheduloScheduler(this.scheduleAheadTime, this.loadAheadTime, this.fadeLength);
-    this.player = new MultiPlayer(this.dymoManager.getStore(), this.schedulo, this.loggingOn);
+    this.schedulo = new ScheduloScheduler(this.options.scheduleAheadTime,
+      this.options.loadAheadTime, this.options.fadeLength, this.options.ignoreInaudible);
+    this.player = new MultiPlayer(this.dymoManager.getStore(), this.schedulo, this.options.loggingOn);
   }
 
   async loadDymo(...fileUris: string[]): Promise<LoadedStuff> {
-    if (this.loggingOn) console.log("LOADING", ...fileUris)
+    if (this.options.loggingOn) console.log("LOADING", ...fileUris)
     const loaded = await this.dymoManager.loadIntoStore(...fileUris);
-    if (this.preloadBuffers) {
-      const paths = await this.dymoManager.getStore().getAllSourcePaths();
-      await this.schedulo.getAudioBank().preloadBuffers(paths)
-    }
-    if (this.loggingOn) console.log("DONE LOADING")
-    if (this.loggingOn) console.log("store size", await this.dymoManager.getStore().size());
+    this.preloadAndLog();
     return loaded;
   }
 
   async loadDymoFromString(dymo: string): Promise<LoadedStuff> {
-    if (this.loggingOn) console.log("LOADING")
+    if (this.options.loggingOn) console.log("LOADING")
     const loaded = await this.dymoManager.loadIntoStoreFromString(dymo);
-    if (this.preloadBuffers) {
+    this.preloadAndLog();
+    return loaded;
+  }
+
+  private async preloadAndLog() {
+    if (this.options.preloadBuffers) {
       const paths = await this.dymoManager.getStore().getAllSourcePaths();
       await this.schedulo.getAudioBank().preloadBuffers(paths)
     }
-    if (this.loggingOn) console.log("DONE LOADING")
-    if (this.loggingOn) console.log("store size", await this.dymoManager.getStore().size());
-    return loaded;
+    if (this.options.loggingOn) console.log("DONE LOADING")
+    if (this.options.loggingOn) console.log("store size", await this.dymoManager.getStore().size());
   }
 
   getDymoManager(): DymoManager {
@@ -77,7 +87,7 @@ export class DymoPlayer {
   }
 
   playUri(dymoUri: string, afterUri?: string) {
-    if (this.loggingOn) console.log("PLAYING", dymoUri)
+    if (this.options.loggingOn) console.log("PLAYING", dymoUri)
     return this.player.play(this.addContext(dymoUri), afterUri);
   }
 
