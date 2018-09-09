@@ -32,8 +32,12 @@ export class WorkerStoreService implements SuperDymoStore {
     return this.worker.postMessage({function:'activateNewConstraints', args:[constraintUris]});
   }
 
-  deactivateConstraints(constraintUris: string[]) {
+  deactivateConstraints(constraintUris: string[]): Promise<void> {
     return this.worker.postMessage({function:'deactivateConstraints', args:[constraintUris]});
+  }
+
+  getActiveConstraintCount(): Promise<number> {
+    return this.worker.postMessage({function:'getActiveConstraintCount', args:[]});
   }
 
 

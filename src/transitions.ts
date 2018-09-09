@@ -21,6 +21,7 @@ export class Transitions {
     const mng = this.player.getDymoManager();
     await mng.loadFromStore(fadeRamp, fadeIn, fadeOut);
     await mng.getStore().setControlParam(fadeRamp, uris.AUTO_CONTROL_TRIGGER, 1);
+    return [fadeOut, fadeIn];
   }
 
   private makeSetsConstraint(ownerUri: string, sets: [string,string[]][], expression: string): Promise<string> {

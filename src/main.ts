@@ -95,17 +95,18 @@ export class DymoPlayer {
 
   async transitionToUri(toUri: string, fromUri: string, duration: number) {
     if (this.options.loggingOn) console.log("TRANSITIONING", toUri);
-    await this.transitions.transitionToUri(toUri, fromUri, duration);
+    const raints = await this.transitions.transitionToUri(toUri, fromUri, duration);
     if (fromUri) {
-      setTimeout(() => this.stopAndRemove(fromUri),
+      setTimeout(() => this.stopAndRemove(fromUri, raints),
         this.options.scheduleAheadTime+duration*1000);
     }
     return this.playUri(toUri);
   }
 
-  private stopAndRemove(dymoUri: string) {
-    this.stopUri(dymoUri);
-    this.dymoManager.getStore().removeDymo(dymoUri);
+  private async stopAndRemove(dymoUri: string, constraints: string[]) {
+    await this.stopUri(dymoUri);
+    await this.dymoManager.getStore().deactivateConstraints(constraints);
+    await this.dymoManager.getStore().removeDymo(dymoUri);
   }
 
   stopUri(dymoUri: string) {
