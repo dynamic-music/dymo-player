@@ -84,6 +84,10 @@ export class WorkerStoreService implements SuperDymoStore {
     return this.worker.postMessage({function:'addDymo', args:[dymoUri, parentUri, partUri, sourcePath, type]});
   }
 
+  removeDymo(dymoUri: string) {
+    return this.worker.postMessage({function:'removeDymo', args:[dymoUri]});
+  }
+
   findTopDymos(): Promise<string[]> {
     return this.worker.postMessage({function:'findTopDymos', args:[]});
   }

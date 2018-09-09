@@ -56,7 +56,7 @@ export class MultiPlayer {
     if (dymoUri && this.currentPlayers.has(dymoUri)) {
       await this.currentPlayers.get(dymoUri).stop();
       this.currentPlayers.delete(dymoUri);
-    } else {
+    } else if (!dymoUri) {
       const players = Array.from(this.currentPlayers.values())
       await Promise.all(players.map(p => p.stop()));
       this.currentPlayers = new Map<string,HierarchicalPlayer>();
@@ -154,7 +154,7 @@ export class HierarchicalPlayer {
   async stop() {
     await Promise.all(this.partPlayers.map(p => p.stop()));
     this.isPlaying = false;
-    return Promise.all(this.scheduledObjects.map(o => o.stop()));
+    return Promise.all(this.scheduledObjects.map(o => o ? o.stop() : null));
   }
 
   objectStarted(object: ScheduledObject) {
@@ -179,7 +179,7 @@ export class HierarchicalPlayer {
     if (!this.navigator) {
       this.navigator = await getNavigator(this.dymoUri, this.store);
     }
-    let next = await this.navigator.next();
+    const next = await this.navigator.next();
 
     let currentReference = this.getLastScheduledObject();
     currentReference = currentReference ? currentReference : this.referenceObject;

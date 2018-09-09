@@ -1,10 +1,10 @@
 import { Observable } from 'rxjs/Observable';
+import { DymoManager, uris, Fetcher, LoadedStuff } from 'dymo-core';
+import { AudioBank } from 'schedulo';
 import { ScheduloScheduler } from './schedulo';
-import { uris, Fetcher, LoadedStuff } from 'dymo-core';
 import { MultiPlayer } from './players';
 import { WorkerStoreService } from './worker-store/superstore-service';
-import { DymoManager } from 'dymo-core';
-import { AudioBank } from 'schedulo';
+import { Transitions } from './transitions';
 
 export interface PlayerOptions {
   useWorkers: boolean,
@@ -25,10 +25,12 @@ export class DymoPlayer {
   private dymoManager: DymoManager;
   private schedulo: ScheduloScheduler;
   private player: MultiPlayer;
+  private transitions: Transitions;
 
   constructor(private options: PlayerOptions) {
     const workerStore = options.useWorkers ? new WorkerStoreService(options.fetcher) : null;
     this.dymoManager = new DymoManager(workerStore, options.fetcher);
+    this.transitions = new Transitions(this);
   }
 
   async init(ontologiesPath?: string): Promise<any> {
@@ -91,7 +93,23 @@ export class DymoPlayer {
     return this.player.play(this.addContext(dymoUri), afterUri);
   }
 
-  stopUri(dymoUri) {
+  async transitionToUri(toUri: string, fromUri: string, duration: number) {
+    if (this.options.loggingOn) console.log("TRANSITIONING", toUri);
+    await this.transitions.transitionToUri(toUri, fromUri, duration);
+    if (fromUri) {
+      setTimeout(() => this.stopAndRemove(fromUri),
+        this.options.scheduleAheadTime+duration*1000);
+    }
+    return this.playUri(toUri);
+  }
+
+  private stopAndRemove(dymoUri: string) {
+    this.stopUri(dymoUri);
+    this.dymoManager.getStore().removeDymo(dymoUri);
+  }
+
+  stopUri(dymoUri: string) {
+    if (this.options.loggingOn) console.log("STOPPING", dymoUri)
     return this.player.stop(this.addContext(dymoUri));
   }
 
