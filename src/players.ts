@@ -1,7 +1,6 @@
 import * as _ from 'lodash';
 import * as natsort from 'natsort';
-import { Observable } from 'rxjs/Observable';
-import { BehaviorSubject } from 'rxjs/BehaviorSubject';
+import { Observable, BehaviorSubject } from 'rxjs';
 import { uris, SuperDymoStore } from 'dymo-core';
 import { DymoScheduler, ScheduledObject } from './scheduler';
 import { Navigator, getNavigator } from './navigators';

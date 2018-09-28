@@ -1,4 +1,4 @@
-import { Observable } from 'rxjs/Observable';
+import { Observable } from 'rxjs';
 import { DymoManager, uris, Fetcher, LoadedStuff } from 'dymo-core';
 import { AudioBank } from 'schedulo';
 import { ScheduloScheduler } from './schedulo';
