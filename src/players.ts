@@ -128,8 +128,10 @@ export class HierarchicalPlayer {
   private endingPromise: Promise<ScheduledObject>;
 
   constructor(private dymoUri: string, private store: SuperDymoStore,
-    private referenceObject: ScheduledObject, private scheduler: DymoScheduler,
-    private dymoPlayer: MultiPlayer) {}
+      private referenceObject: ScheduledObject, private scheduler: DymoScheduler,
+      private dymoPlayer: MultiPlayer) {
+    
+  }
 
   getStore() {
     return this.store;
@@ -175,13 +177,10 @@ export class HierarchicalPlayer {
     }
     //TODO PLAY AND OBSERVE MAIN DURATION ... should override part players...
     //THEN MAKE PLAYER FOR NAVIGATED PART IF THERE IS ONE
-    if (!this.navigator) {
-      this.navigator = await getNavigator(this.dymoUri, this.store);
-    }
+    this.navigator = this.navigator || await getNavigator(this.dymoUri, this.store);
     const next = await this.navigator.next();
 
-    let currentReference = this.getLastScheduledObject();
-    currentReference = currentReference ? currentReference : this.referenceObject;
+    const currentReference = this.getLastScheduledObject() || this.referenceObject;
 
     if (await this.navigator.hasParts()) {
       if (next && next.uris) {
@@ -199,9 +198,10 @@ export class HierarchicalPlayer {
           of objects with variable duration!*/
         /*TODO also, override with this duration if there is one! (e.g. sequence
           with a variable duration regardless of its parts' durations)*/
-        let lastObjects = this.partPlayers.map(p => p.getLastScheduledObject());
+        let lastObjects = this.partPlayers.map(p => p.getLastScheduledObject()).filter(o => o);
         let durations = await Promise.all(lastObjects.map(o => o.getParam(uris.DURATION)));
-        lastObjects.sort((a,b) => durations[lastObjects.indexOf(a)] - durations[lastObjects.indexOf(b)]);
+        //TODO CURRENTLY TAKING SHORTEST ONE!!!!!!!! (SET BACK TO LONGEST?)
+        lastObjects.sort((a,b) => durations[lastObjects.indexOf(b)] - durations[lastObjects.indexOf(a)]);
         return Promise.resolve(_.last(lastObjects));
       }
     } else {
@@ -222,6 +222,7 @@ export class HierarchicalPlayer {
   }
 
   private addScheduledObjects(objects: ScheduledObject[]) {
+    objects = objects.filter(o => o); //ignore undefined
     this.scheduledObjects = this.scheduledObjects.concat(objects);
   }
 

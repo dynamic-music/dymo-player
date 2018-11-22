@@ -1,5 +1,5 @@
 import { Schedulo, Time, Playback } from 'schedulo';
-import { uris } from 'dymo-core';
+import { uris, Fetcher } from 'dymo-core';
 import { DymoScheduler } from './scheduler';
 import { ScheduloScheduledObject } from './wrapper';
 import { HierarchicalPlayer } from './players';
@@ -9,14 +9,15 @@ export class ScheduloScheduler extends DymoScheduler {
   private schedulo: Schedulo;
   private paused = false;
 
-  constructor(scheduleAheadTime = 1, loadAheadTime = 3, fadeLength = 0.01, ignoreInaudible = false) {
+  constructor(scheduleAheadTime = 1, loadAheadTime = 3, fadeLength = 0.01, ignoreInaudible = false, fetcher?: Fetcher) {
     super();
     this.schedulo = new Schedulo(
       {
         connectToGraph: {countIn: scheduleAheadTime, countOut: 1, minCountIn: scheduleAheadTime},
         loadBuffer: {countIn: loadAheadTime, countOut: 5, minCountIn: loadAheadTime, ignoreInaudible: ignoreInaudible}
       },
-      fadeLength
+      fadeLength,
+      fetcher
     );
   }
 
@@ -26,7 +27,7 @@ export class ScheduloScheduler extends DymoScheduler {
 
   pause() {
     this.paused = !this.paused;
-    this.schedulo.pause();
+    //this.schedulo.pause();
   }
 
   setListenerOrientation(posX, posY, posZ, forwX, forwY, forwZ) {

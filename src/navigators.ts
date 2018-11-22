@@ -163,46 +163,67 @@ export abstract class OneshotNavigator extends Navigator {
     await super.next();
     if (await this.keepPlaying()) {
       this.playCount++;
-      return Promise.resolve(this.get());
+      return this.get();
     }
   }
 
-  abstract get(): SchedulingInstructions;
+  abstract async get(): Promise<SchedulingInstructions>;
+
+  getPosition() {
+    return 0;
+  }
 
 }
 
 export class LeafNavigator extends OneshotNavigator {
 
-  get() {
+  async get() {
     return { uris: this.toArray(this.dymoUri) };
-  }
-
-  getPosition() {
-    return 0;
   }
 
 }
 
 export class ConjunctionNavigator extends OneshotNavigator {
 
-  get() {
+  async get() {
     return { uris: this.parts };
-  }
-
-  getPosition() {
-    return 0;
   }
 
 }
 
 export class DisjunctionNavigator extends OneshotNavigator {
 
-  get() {
+  async get() {
     return { uris: this.toArray(this.parts[_.random(this.parts.length)]) };
   }
 
-  getPosition() {
-    return 0;
+}
+
+export class RandomSelectionNavigator extends OneshotNavigator {
+
+  async get() {
+    const size = 5; //TODO MAKE DEPENDENT!!!!!!
+    return { uris: _.sampleSize(this.parts, size) };
+  }
+
+}
+
+export class SelectionNavigator extends OneshotNavigator {
+
+  async get() {
+    const index = await this.store.findParameterValue(null, uris.CONTEXT_URI+"material");
+    console.log("select", index, this.parts)
+    return { uris: this.toArray(this.parts[index]) };
+  }
+
+}
+
+export class MultiSelectionNavigator extends OneshotNavigator {
+
+  async get() {
+    const indices = await this.store.findParameterValue(null, uris.CONTEXT_URI+"instruments");
+    //console.log("multii", indices, this.parts)
+    return { uris: indices.map(i => this.parts[i]) };
   }
 
 }
@@ -216,6 +237,10 @@ export async function getNavigator(dymoUri: string, store: SuperDymoStore): Prom
     return new ConjunctionNavigator(dymoUri, store);
   } else if (dymoType === uris.DISJUNCTION) {
     return new DisjunctionNavigator(dymoUri, store);
+  } else if (dymoType === uris.SELECTION) {
+    return new SelectionNavigator(dymoUri, store);
+  } else if (dymoType === uris.MULTI_SELECTION) {
+    return new MultiSelectionNavigator(dymoUri, store);
   } else if (parts.length > 0) {
     if (await store.findParameterValue(parts[0], uris.ONSET) != null) {
       return new OnsetNavigator(dymoUri, store);

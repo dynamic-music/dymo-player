@@ -142,6 +142,8 @@ export class ScheduloScheduledObject extends ScheduledObject {
       }
     }
 
+    //if (typeUri == uris.DELAY) console.log(allValues, value)
+
     //update the schedulo object
     if (value != null) {
       //console.log(typeUri, value)

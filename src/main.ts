@@ -37,7 +37,8 @@ export class DymoPlayer {
     if (this.options.loggingOn) console.log("INIT PLAYER")
     await this.dymoManager.init(ontologiesPath);
     this.schedulo = new ScheduloScheduler(this.options.scheduleAheadTime,
-      this.options.loadAheadTime, this.options.fadeLength, this.options.ignoreInaudible);
+      this.options.loadAheadTime, this.options.fadeLength,
+      this.options.ignoreInaudible, this.options.fetcher);
     this.player = new MultiPlayer(this.dymoManager.getStore(), this.schedulo, this.options.loggingOn);
   }
 
