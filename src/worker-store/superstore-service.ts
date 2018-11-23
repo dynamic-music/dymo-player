@@ -14,7 +14,7 @@ export class WorkerStoreService implements SuperDymoStore {
     this.worker._worker.addEventListener('message', this.notifyObservers.bind(this));
     if (fetcher) {
       //TODO doesn't work of course..
-      this.worker.postMessage({function:'setFetcher', args:[fetcher]});
+      //this.worker.postMessage({function:'setFetcher', args:[fetcher]});
     }
   }
 
