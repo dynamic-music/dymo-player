@@ -7,6 +7,7 @@ describe("a navigator", () => {
   let store;
 
   beforeEach(async done => {
+    //(1:(2:5,6),(3:7,(8:11,12),9),(4:10)))
     store = await getStoreWithDymo();
     done();
   });
@@ -14,7 +15,9 @@ describe("a navigator", () => {
   it("can be sequential", async () => {
     var navigator = new SequentialNavigator("dymo1", store);
     expectPosition(navigator, 0);
-    await expectNext(navigator, "dymo5");
+    await expectNext(navigator, "dymo2");
+    await expectNext(navigator, "dymo3");
+    await expectNext(navigator, "dymo4");
     /*expect(navigator.getPosition()).toBe(0);
     //expect(navigator.getPosition("dymo2")).toBe(1);
     expect(navigator.next()[0]).toBe("dymo6");

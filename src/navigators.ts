@@ -90,7 +90,7 @@ export abstract class IndexedNavigator extends Navigator {
   }
 
   /** override for any non-index-based reset operation */
-  protected reset() {
+  reset() {
     this.currentIndex = 0;
   }
 

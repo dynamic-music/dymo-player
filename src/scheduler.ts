@@ -3,12 +3,13 @@ import { HierarchicalPlayer } from './players';
 
 
 export abstract class ScheduledObject {
-
-  protected store: SuperDymoStore;
-  protected parentUris: string[];
+  
+  private store: SuperDymoStore;
+  private parentUris: string[];
+  protected ready: Promise<void>;
 
   constructor(protected dymoUri: string, protected player: HierarchicalPlayer) {
-    this.init();
+    this.ready = this.init();
   }
 
   private async init() {
@@ -20,7 +21,8 @@ export abstract class ScheduledObject {
     return this.dymoUri;
   }
 
-  getUris(): string[] {
+  async getUris(): Promise<string[]> {
+    await this.ready;
     return [this.dymoUri].concat(this.parentUris);
   }
 

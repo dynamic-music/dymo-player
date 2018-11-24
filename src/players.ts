@@ -89,16 +89,16 @@ export class MultiPlayer {
     this.playingDymoUris.next(dymoUris);
   }
 
-  objectStarted(object: ScheduledObject) {
+  async objectStarted(object: ScheduledObject) {
     this.playingObjects.push(object);
     let uris = this.playingDymoUris.getValue();
-    uris = uris.concat(object.getUris());
+    uris = uris.concat(await object.getUris());
     this.updatePlayingDymoUris(uris);
   }
 
-  objectEnded(object: ScheduledObject) {
+  async objectEnded(object: ScheduledObject) {
     if (removeFrom(object, this.playingObjects)) {
-      let uris = _.flatten(this.playingObjects.map(o => o.getUris()));
+      let uris = _.flatten(await Promise.all(this.playingObjects.map(o => o.getUris())));
       this.updatePlayingDymoUris(uris);
     }
   }
