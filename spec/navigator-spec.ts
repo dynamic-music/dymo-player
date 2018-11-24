@@ -6,10 +6,9 @@ describe("a navigator", () => {
 
   let store;
 
-  beforeEach(async done => {
+  beforeEach(async () => {
     //(1:(2:5,6),(3:7,(8:11,12),9),(4:10)))
     store = await getStoreWithDymo();
-    done();
   });
 
   it("can be sequential", async () => {

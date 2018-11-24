@@ -8,16 +8,20 @@ describe("a player", () => {
   
   let store: SuperDymoStore;
 
-  beforeEach(async done => {
+  beforeEach(async () => {
     store = await getStoreWithDymo();
-    done();
   });
   
-  it("normally plays sequentially", async done => {
-    const player = new MultiPlayer(store, new DummyScheduler(0));
-    player.play("dymo1");
-    setTimeout(done, 200);
-    //TODO CHECK IF SEQUENCE ALRIGHT
+  it("normally plays sequentially", async () => {
+    const scheduler = new DummyScheduler(0);
+    const player = new MultiPlayer(store, scheduler);
+    await player.play("dymo1");
+    const uris = scheduler.getScheduledObjects().map(o => o.getUri());
+    expect(uris).toEqual(createDymoNames(5,6,7,11,12,9,10));
   });
+  
+  function createDymoNames(...indexes: number[]) {
+    return indexes.map(i => "dymo"+i);
+  }
 
 });

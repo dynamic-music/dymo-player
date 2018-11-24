@@ -59,17 +59,28 @@ export abstract class DymoScheduler {
 
 }
 
+/** a scheduler that logs all scheduled ids that can be used for tests.
+  * objects start after given delay and end after another delay */
 export class DummyScheduler extends DymoScheduler {
+  
+  private objects: DummyScheduledObject[] = [];
 
   constructor(private delay: number) { super() }
 
   setListenerOrientation(posX, posY, posZ, forwX, forwY, forwZ) { }
+  
+  getScheduledObjects() {
+    return this.objects;
+  }
 
-  schedule(dymoUri: string, previousObject: ScheduledObject, player: HierarchicalPlayer): Promise<ScheduledObject> {
+  schedule(dymoUri: string, previousObject: ScheduledObject,
+      player: HierarchicalPlayer): Promise<ScheduledObject> {
     return new Promise(resolve =>
       setTimeout(() => {
-        console.log("scheduled", dymoUri);
-        resolve(new DummyScheduledObject(dymoUri, player, this.delay));
+        //console.log("scheduled", dymoUri);
+        const newObject = new DummyScheduledObject(dymoUri, player, this.delay);
+        this.objects.push(newObject);
+        resolve(newObject);
       }, this.delay)
     );
   }
