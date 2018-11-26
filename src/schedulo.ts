@@ -38,7 +38,7 @@ export class ScheduloScheduler extends DymoScheduler {
     return this.schedulo.getAudioBank();
   }
 
-  async schedule(dymoUri: string, previousObject: ScheduloScheduledObject, player: HierarchicalPlayer): Promise<ScheduloScheduledObject> {
+  async schedule(dymoUri: string, previousObject: ScheduloScheduledObject, player: HierarchicalPlayer): Promise<ScheduledObject> {
 
     if (!dymoUri) return Promise.reject('no dymoUri given');
 

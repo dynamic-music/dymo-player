@@ -31,16 +31,15 @@ export class ScheduloScheduledObject extends ScheduledObject {
   private attributeToValueAfterBehavior = new Map<string,number>();
   private observedParams: [string, string][] = [];
   private object: ScheduloObject;
-  private ready: Promise<any>;
 
   constructor(dymoUri: string, private previousObject: ScheduloScheduledObject,
       player: HierarchicalPlayer) {
     super(dymoUri, player);
-    this.init2();
   }
 
-  private async init2() {
-    this.ready = Promise.all([...PAIRINGS.keys()].map(async (typeUri) => {
+  protected async init() {
+    super.init();
+    Promise.all([...PAIRINGS.keys()].map(async (typeUri) => {
       await this.initAttribute(this.dymoUri, typeUri);
       //if behavior not independent, init parent attributes
       let behavior = await this.store.findObject(typeUri, uris.HAS_BEHAVIOR);

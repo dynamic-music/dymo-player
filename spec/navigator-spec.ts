@@ -17,38 +17,27 @@ describe("a navigator", () => {
     await expectNext(navigator, "dymo2");
     await expectNext(navigator, "dymo3");
     await expectNext(navigator, "dymo4");
-    /*expect(navigator.getPosition()).toBe(0);
-    //expect(navigator.getPosition("dymo2")).toBe(1);
-    expect(navigator.next()[0]).toBe("dymo6");
-    expect(navigator.getPosition()).toBe(1);
-    //expect(navigator.getPosition("dymo2")).toBe(0);
-    expect(navigator.next()[0]).toBe("dymo7");
-    expect(navigator.next()[0]).toBe("dymo11");
-    expect(navigator.next()[0]).toBe("dymo12");
-    expect(navigator.next()[0]).toBe("dymo9");
-    expect(navigator.getPosition()).toBe(2);
-    expect(navigator.next()[0]).toBe("dymo10");
-    expect(navigator.getPosition()).toBe(0);
-    //and keeps looping
-    expect(navigator.next()[0]).toBe("dymo5");
-    expect(navigator.next()[0]).toBe("dymo6");
+    await expectNext(navigator, undefined);
+    await expectNext(navigator, undefined);
     navigator.reset();
-    //starts over
-    expect(navigator.next()[0]).toBe("dymo5");
-    expect(navigator.next()[0]).toBe("dymo6");
-    expect(navigator.next()[0]).toBe("dymo7");
-    expect(navigator.next()[0]).toBe("dymo11");
-    expect(navigator.next()[0]).toBe("dymo12");
-    expect(navigator.next()[0]).toBe("dymo9");
-    expect(navigator.next()[0]).toBe("dymo10");*/
+    await expectNext(navigator, "dymo2");
+    await expectNext(navigator, "dymo3");
+    await expectNext(navigator, "dymo4");
+    await expectNext(navigator, undefined);
+    await expectNext(navigator, undefined);
   });
   
   function expectPosition(navigator: Navigator, position: number) {
     expect(navigator.getPosition()).toBe(position);
   }
   
-  async function expectNext(navigator: Navigator, uri: string) {
-    expect((await navigator.next()).uris).toContain(uri);
+  async function expectNext(navigator: Navigator, uri?: string) {
+    const nextUris = (await navigator.next()).uris;
+    if (uri) {
+      expect(nextUris).toContain(uri);
+    } else {
+      expect(nextUris).toBeUndefined();
+    }
   }
 
   /*it("has getters and setters for its position", function() {
