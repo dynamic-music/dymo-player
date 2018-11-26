@@ -194,7 +194,7 @@ export class ConjunctionNavigator extends OneshotNavigator {
 export class DisjunctionNavigator extends OneshotNavigator {
 
   async get() {
-    return { uris: this.toArray(this.parts[_.random(this.parts.length)]) };
+    return { uris: this.toArray(this.parts[_.random(this.parts.length-1)]) };
   }
 
 }
@@ -209,21 +209,27 @@ export class RandomSelectionNavigator extends OneshotNavigator {
 }
 
 export class SelectionNavigator extends OneshotNavigator {
+  
+  constructor(dymoUri: string, store: SuperDymoStore, private indexUri: string) {
+    super(dymoUri, store);
+  }
 
   async get() {
-    const index = await this.store.findParameterValue(null, uris.CONTEXT_URI+"material");
-    console.log("select", index, this.parts)
-    return { uris: this.toArray(this.parts[index]) };
+    const indexValue = await this.store.findObjectValue(this.indexUri, uris.VALUE);
+    return { uris: this.toArray(this.parts[indexValue]) };
   }
 
 }
 
 export class MultiSelectionNavigator extends OneshotNavigator {
 
+  constructor(dymoUri: string, store: SuperDymoStore, private indicesUri: string) {
+    super(dymoUri, store);
+  }
+
   async get() {
-    const indices = await this.store.findParameterValue(null, uris.CONTEXT_URI+"instruments");
-    //console.log("multii", indices, this.parts)
-    return { uris: indices.map(i => this.parts[i]) };
+    const indicesValue = await this.store.findObjectValue(this.indicesUri, uris.VALUE);
+    return { uris: indicesValue.map(i => this.parts[i]) };
   }
 
 }
@@ -237,10 +243,12 @@ export async function getNavigator(dymoUri: string, store: SuperDymoStore): Prom
     return new ConjunctionNavigator(dymoUri, store);
   } else if (dymoType === uris.DISJUNCTION) {
     return new DisjunctionNavigator(dymoUri, store);
-  } else if (dymoType === uris.SELECTION) {
-    return new SelectionNavigator(dymoUri, store);
-  } else if (dymoType === uris.MULTI_SELECTION) {
-    return new MultiSelectionNavigator(dymoUri, store);
+  } else if (await store.isSubtypeOf(dymoType, uris.SELECTION)) {
+    const indexValue = await store.findObject(dymoType, uris.HAS_TYPE_PARAM);
+    return new SelectionNavigator(dymoUri, store, indexValue);
+  } else if (await store.isSubtypeOf(dymoType, uris.MULTI_SELECTION)) {
+    const indexValues = await store.findObject(dymoType, uris.HAS_TYPE_PARAM);
+    return new MultiSelectionNavigator(dymoUri, store, indexValues);
   } else if (parts.length > 0) {
     if (await store.findParameterValue(parts[0], uris.ONSET) != null) {
       return new OnsetNavigator(dymoUri, store);

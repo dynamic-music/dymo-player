@@ -22,18 +22,50 @@ describe("a player", () => {
     expectScheduled([[5],[6],[7],[11],[12],[9],[10]]);
   });
   
-  it("reacts to dymo types", async () => {
+  it("handles conjunctions", async () => {
     await store.addTriple("dymo1", uris.CDT, uris.CONJUNCTION);
     await player.play("dymo1");
     expectScheduled([[5,7,10],[6,11],[12],[9]]);
   });
   
-  function expectScheduled(dymoIndices: number[][]) {
+  it("handles disjunctions", async () => {
+    await store.addTriple("dymo1", uris.CDT, uris.DISJUNCTION);
+    await player.play("dymo1");
+    expectScheduled([[5],[6]], [[7],[11],[12],[9]], [[10]]);
+  });
+  
+  it("handles selections", async () => {
+    const indexValue = await store.createBlankNode();
+    await store.setValue(indexValue, uris.VALUE, 1);
+    const selection = await store.addTriple(null, uris.TYPE, uris.SELECTION);
+    await store.addTriple(selection, uris.HAS_TYPE_PARAM, indexValue);
+    await store.addTriple("dymo1", uris.CDT, selection);
+    await player.play("dymo1");
+    expectScheduled([[7],[11],[12],[9]]);
+  });
+  
+  it("handles multiselections", async () => {
+    const indexValue = await store.createBlankNode();
+    await store.setValue(indexValue, uris.VALUE, [0,2]);
+    const selection = await store.addTriple(null, uris.TYPE, uris.MULTI_SELECTION);
+    await store.addTriple(selection, uris.HAS_TYPE_PARAM, indexValue);
+    await store.addTriple("dymo1", uris.CDT, selection);
+    await player.play("dymo1");
+    expectScheduled([[5,10],[6]]);
+  });
+  
+  //reverse
+  //permutations
+  //onsets
+  //durations!!!
+  //randomselection
+  
+  function expectScheduled(...dymoIndices: number[][][]) {
     const uris = scheduler.getScheduledObjects()
       .map(os => os.map(o => o.getUri()));
     //console.log(uris)
-    const expected = dymoIndices.map(is => is.map(i => "dymo"+i));
-    expect(uris).toEqual(expected);
+    const expected = dymoIndices.map(k => k.map(j => j.map(i => "dymo"+i)));
+    expect(expected).toContain(uris);
   }
 
 });
