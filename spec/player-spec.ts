@@ -1,75 +1,78 @@
 import "jasmine";
 import * as _ from 'lodash';
-import { SuperDymoStore, uris } from 'dymo-core';
+import { DymoGenerator, uris } from 'dymo-core';
 import { MultiPlayer } from  "../src/players";
 import { DummyScheduler } from  "../src/dummy";
 import { getStoreWithDymo } from './util';
 
 describe("a player", () => {
   
-  let store: SuperDymoStore;
+  const DYMO1_PARTS = [[[5],[6]], [[7],[11],[12],[9]], [[10]]];
+  let generator: DymoGenerator;
   let scheduler: DummyScheduler;
   let player: MultiPlayer;
 
   beforeEach(async () => {
     //(1:(2:5,6),(3:7,(8:11,12),9),(4:10)))
-    store = await getStoreWithDymo();
+    const store = await getStoreWithDymo();
+    generator = new DymoGenerator(false, store);
     scheduler = new DummyScheduler();
     player = new MultiPlayer(store, scheduler);
   });
   
   it("normally plays sequentially", async () => {
     await player.play("dymo1");
-    expectScheduled([[5],[6],[7],[11],[12],[9],[10]]);
+    expectScheduled(_.flatten(DYMO1_PARTS));
   });
   
   it("handles conjunctions", async () => {
-    await store.addTriple("dymo1", uris.CDT, uris.CONJUNCTION);
+    await generator.setDymoType("dymo1", uris.CONJUNCTION);
     await player.play("dymo1");
-    expectScheduled([[5,7,10],[6,11],[12],[9]]);
+    expectScheduled(zipUnevenFlat(DYMO1_PARTS));
   });
   
   it("handles disjunctions", async () => {
-    await store.addTriple("dymo1", uris.CDT, uris.DISJUNCTION);
+    await generator.setDymoType("dymo1", uris.DISJUNCTION);
     await player.play("dymo1");
-    expectScheduled([[5],[6]], [[7],[11],[12],[9]], [[10]]);
+    expectScheduled(...DYMO1_PARTS);
   });
   
   it("handles reverse", async () => {
-    await store.addTriple("dymo1", uris.CDT, uris.REVERSE);
+    await generator.setDymoType("dymo1", uris.REVERSE);
     await player.play("dymo1");
-    expectScheduled([[10],[9],[12],[11],[7],[6],[5]]);
+    expectScheduled(_.flatten(_.reverse(_.clone(DYMO1_PARTS))));
   });
   
   it("handles permutations", async () => {
-    await store.addTriple("dymo1", uris.CDT, uris.PERMUTATION);
+    await generator.setDymoType("dymo1", uris.PERMUTATION);
     await player.play("dymo1");
-    const expected = getPermutations([[[5],[6]], [[7],[11],[12],[9]], [[10]]])
-      .map(p => _.flatten(p));
-    expectScheduled(...expected);
+    expectScheduled(...getPermutations(DYMO1_PARTS).map(_.flatten));
+  });
+  
+  it("handles subsets", async () => {
+    await generator.setDymoType("dymo1", uris.SUBSET);
+    await player.play("dymo1");
+    expectScheduled(...getSubsets(DYMO1_PARTS).map(zipUnevenFlat));
+  });
+  
+  it("handles subsets of a given size", async () => {
+    await generator.setDymoType("dymo1", uris.SUBSET, 2);
+    await player.play("dymo1");
+    expectScheduled(...getSubsets(DYMO1_PARTS).map(zipUnevenFlat));
   });
   
   it("handles selections", async () => {
-    const indexValue = await store.createBlankNode();
-    await store.setValue(indexValue, uris.VALUE, 1);
-    const selection = await store.addTriple(null, uris.TYPE, uris.SELECTION);
-    await store.addTriple(selection, uris.HAS_TYPE_PARAM, indexValue);
-    await store.addTriple("dymo1", uris.CDT, selection);
+    await generator.setDymoType("dymo1", uris.SELECTION, 1);
     await player.play("dymo1");
-    expectScheduled([[7],[11],[12],[9]]);
+    expectScheduled(DYMO1_PARTS[1]);
   });
   
   it("handles multiselections", async () => {
-    const indexValue = await store.createBlankNode();
-    await store.setValue(indexValue, uris.VALUE, [0,2]);
-    const selection = await store.addTriple(null, uris.TYPE, uris.MULTI_SELECTION);
-    await store.addTriple(selection, uris.HAS_TYPE_PARAM, indexValue);
-    await store.addTriple("dymo1", uris.CDT, selection);
+    await generator.setDymoType("dymo1", uris.MULTI_SELECTION, [0,2]);
     await player.play("dymo1");
-    expectScheduled([[5,10],[6]]);
+    expectScheduled(zipUnevenFlat([DYMO1_PARTS[0],DYMO1_PARTS[2]]));
   });
   
-  //randomselection
   //onsets
   //durations!!!
   //LOOP AND REPEAT
@@ -86,21 +89,35 @@ describe("a player", () => {
     return scheduler.getScheduledObjects().map(os => os.map(o => o.getUri()));
   }
   
+  function getPermutations<T>(a: T[]) {
+    return permute(_.clone(a));
+  }
+  
   //Heap's algorithm
-  function getPermutations<T>(a: T[], n = a.length, r: T[][] = []) {
+  function permute<T>(a: T[], n = a.length, r: T[][] = []) {
     if (n == 1) r.push(_.clone(a));
     else {
       _.range(n-1).forEach(i => {
-        getPermutations(a, n-1, r);
+        permute(a, n-1, r);
         swap(a, n%2 ? 0 : i, n-1);
       });
-      getPermutations(a, n-1, r);
+      permute(a, n-1, r);
     }
     return r;
   }
   
   function swap(a: any[], i1: number, i2: number) {
     [a[i1], a[i2]] = [a[i2], a[i1]];
+  }
+  
+  function getSubsets<T>(a: T[]) {
+    const init: T[][] = [[]];
+    return a.reduce((sets, v) =>
+      sets.concat(sets.map(s => [...s, v])), init);
+  }
+  
+  function zipUnevenFlat<T>(a: T[][][]) {
+    return _.zip(...a).map(z => _.flatten(z.filter(i => i)));
   }
 
 });

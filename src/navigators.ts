@@ -201,14 +201,6 @@ export class DisjunctionNavigator extends OneshotNavigator {
 
 }
 
-export class SubsetNavigator extends OneshotNavigator {
-
-  async get() {
-    return { uris: _.sampleSize(this.parts, _.random(this.parts.length-1)) };
-  }
-
-}
-
 abstract class ParamNavigator extends OneshotNavigator {
 
   constructor(dymoUri: string, store: SuperDymoStore, private paramUri: string) {
@@ -216,15 +208,26 @@ abstract class ParamNavigator extends OneshotNavigator {
   }
   
   async getParamValue() {
-    return this.store.findObjectValue(this.paramUri, uris.VALUE);
+    if (this.paramUri) {
+      return this.store.findObjectValue(this.paramUri, uris.VALUE);
+    }
   }
   
+}
+
+export class SubsetNavigator extends ParamNavigator {
+
+  async get() {
+    const size = await this.getParamValue() || _.random(this.parts.length-1);
+    return { uris: _.sampleSize(this.parts, size)};
+  }
+
 }
 
 export class SelectionNavigator extends ParamNavigator {
 
   async get() {
-    const indexValue = await this.getParamValue();
+    const indexValue = await this.getParamValue() || 0;
     return { uris: this.toArray(this.parts[indexValue]) };
   }
 
@@ -233,7 +236,7 @@ export class SelectionNavigator extends ParamNavigator {
 export class MultiSelectionNavigator extends ParamNavigator {
 
   async get() {
-    const indicesValue = await this.getParamValue();
+    const indicesValue = await this.getParamValue() || [0];
     return { uris: indicesValue.map(i => this.parts[i]) };
   }
 
@@ -257,8 +260,7 @@ const NAVIGATOR_MAP = {
   [uris.ONSET_SEQUENCE]: OnsetNavigator,
   [uris.SUBSET]: SubsetNavigator,
   [uris.SELECTION]: SelectionNavigator,
-  [uris.MULTI_SELECTION]: MultiSelectionNavigator,
-  [uris.MULTI_RANDOM]: MultiRandomNavigator,
+  [uris.MULTI_SELECTION]: MultiSelectionNavigator
 }
 
 export async function getNavigator(dymoUri: string, store: SuperDymoStore): Promise<Navigator> {
