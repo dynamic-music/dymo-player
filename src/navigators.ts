@@ -51,9 +51,9 @@ export abstract class Navigator implements PartsObserver {
     return s ? [s] : undefined;
   }
 
-  observedPartsChanged(dymoUri: string) {
+  async observedPartsChanged(dymoUri: string) {
     if (dymoUri == this.dymoUri) {
-      this.updateParts();
+      await this.updateParts();
     }
   }
 
@@ -121,10 +121,12 @@ export class PermutationNavigator extends IndexedNavigator {
 
   reset() {
     super.reset();
-    this.permutedIndices = _.shuffle(_.range(this.parts.length));
+    this.permutedIndices = null;
   }
 
   async get() {
+    this.permutedIndices = this.permutedIndices
+      || _.shuffle(_.range(this.parts.length));
     return {
       uris: this.toArray(this.parts[this.permutedIndices[this.currentIndex++]])
     };
@@ -194,61 +196,79 @@ export class ConjunctionNavigator extends OneshotNavigator {
 export class DisjunctionNavigator extends OneshotNavigator {
 
   async get() {
-    return { uris: this.toArray(this.parts[_.random(this.parts.length-1)]) };
+    return { uris: this.toArray(_.sample(this.parts)) };
   }
 
 }
 
-export class RandomSelectionNavigator extends OneshotNavigator {
+export class SubsetNavigator extends OneshotNavigator {
 
   async get() {
-    const size = 5; //TODO MAKE DEPENDENT!!!!!!
-    return { uris: _.sampleSize(this.parts, size) };
+    return { uris: _.sampleSize(this.parts, _.random(this.parts.length-1)) };
   }
 
 }
 
-export class SelectionNavigator extends OneshotNavigator {
-  
-  constructor(dymoUri: string, store: SuperDymoStore, private indexUri: string) {
+abstract class ParamNavigator extends OneshotNavigator {
+
+  constructor(dymoUri: string, store: SuperDymoStore, private paramUri: string) {
     super(dymoUri, store);
   }
+  
+  async getParamValue() {
+    return this.store.findObjectValue(this.paramUri, uris.VALUE);
+  }
+  
+}
+
+export class SelectionNavigator extends ParamNavigator {
 
   async get() {
-    const indexValue = await this.store.findObjectValue(this.indexUri, uris.VALUE);
+    const indexValue = await this.getParamValue();
     return { uris: this.toArray(this.parts[indexValue]) };
   }
 
 }
 
-export class MultiSelectionNavigator extends OneshotNavigator {
-
-  constructor(dymoUri: string, store: SuperDymoStore, private indicesUri: string) {
-    super(dymoUri, store);
-  }
+export class MultiSelectionNavigator extends ParamNavigator {
 
   async get() {
-    const indicesValue = await this.store.findObjectValue(this.indicesUri, uris.VALUE);
+    const indicesValue = await this.getParamValue();
     return { uris: indicesValue.map(i => this.parts[i]) };
   }
 
 }
 
+export class MultiRandomNavigator extends ParamNavigator {
 
+  async get() {
+    const count = await this.getParamValue();
+    return { uris: _.sampleSize(this.parts, count) };
+  }
+
+}
+
+const NAVIGATOR_MAP = {
+  [uris.CONJUNCTION]: ConjunctionNavigator,
+  [uris.DISJUNCTION]: DisjunctionNavigator,
+  [uris.SEQUENCE]: SequentialNavigator,
+  [uris.REVERSE]: ReverseSequentialNavigator,
+  [uris.PERMUTATION]: PermutationNavigator,
+  [uris.ONSET_SEQUENCE]: OnsetNavigator,
+  [uris.SUBSET]: SubsetNavigator,
+  [uris.SELECTION]: SelectionNavigator,
+  [uris.MULTI_SELECTION]: MultiSelectionNavigator,
+  [uris.MULTI_RANDOM]: MultiRandomNavigator,
+}
 
 export async function getNavigator(dymoUri: string, store: SuperDymoStore): Promise<Navigator> {
-  let dymoType = await store.findObject(dymoUri, uris.CDT);
-  let parts = await store.findParts(dymoUri);
-  if (dymoType === uris.CONJUNCTION) {
-    return new ConjunctionNavigator(dymoUri, store);
-  } else if (dymoType === uris.DISJUNCTION) {
-    return new DisjunctionNavigator(dymoUri, store);
-  } else if (await store.isSubtypeOf(dymoType, uris.SELECTION)) {
-    const indexValue = await store.findObject(dymoType, uris.HAS_TYPE_PARAM);
-    return new SelectionNavigator(dymoUri, store, indexValue);
-  } else if (await store.isSubtypeOf(dymoType, uris.MULTI_SELECTION)) {
-    const indexValues = await store.findObject(dymoType, uris.HAS_TYPE_PARAM);
-    return new MultiSelectionNavigator(dymoUri, store, indexValues);
+  const dymoType = await store.findObject(dymoUri, uris.CDT);
+  const parts = await store.findParts(dymoUri);
+  if (dymoType) {
+    const navClass: any = NAVIGATOR_MAP[dymoType]
+      || NAVIGATOR_MAP[await store.findObject(dymoType, uris.TYPE)];
+    const param = await store.findObject(dymoType, uris.HAS_TYPE_PARAM);
+    return new navClass(dymoUri, store, param);
   } else if (parts.length > 0) {
     if (await store.findParameterValue(parts[0], uris.ONSET) != null) {
       return new OnsetNavigator(dymoUri, store);

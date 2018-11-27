@@ -1,4 +1,5 @@
 import "jasmine";
+import * as _ from 'lodash';
 import { SuperDymoStore, uris } from 'dymo-core';
 import { MultiPlayer } from  "../src/players";
 import { DummyScheduler } from  "../src/dummy";
@@ -34,6 +35,20 @@ describe("a player", () => {
     expectScheduled([[5],[6]], [[7],[11],[12],[9]], [[10]]);
   });
   
+  it("handles reverse", async () => {
+    await store.addTriple("dymo1", uris.CDT, uris.REVERSE);
+    await player.play("dymo1");
+    expectScheduled([[10],[9],[12],[11],[7],[6],[5]]);
+  });
+  
+  it("handles permutations", async () => {
+    await store.addTriple("dymo1", uris.CDT, uris.PERMUTATION);
+    await player.play("dymo1");
+    const expected = getPermutations([[[5],[6]], [[7],[11],[12],[9]], [[10]]])
+      .map(p => _.flatten(p));
+    expectScheduled(...expected);
+  });
+  
   it("handles selections", async () => {
     const indexValue = await store.createBlankNode();
     await store.setValue(indexValue, uris.VALUE, 1);
@@ -54,18 +69,38 @@ describe("a player", () => {
     expectScheduled([[5,10],[6]]);
   });
   
-  //reverse
-  //permutations
+  //randomselection
   //onsets
   //durations!!!
-  //randomselection
+  //LOOP AND REPEAT
   
   function expectScheduled(...dymoIndices: number[][][]) {
-    const uris = scheduler.getScheduledObjects()
-      .map(os => os.map(o => o.getUri()));
-    //console.log(uris)
-    const expected = dymoIndices.map(k => k.map(j => j.map(i => "dymo"+i)));
-    expect(expected).toContain(uris);
+    expect(indicesToUris(...dymoIndices)).toContain(getScheduledUris());
+  }
+  
+  function indicesToUris(...dymoIndices: number[][][]) {
+    return dymoIndices.map(k => k.map(j => j.map(i => "dymo"+i)));
+  }
+  
+  function getScheduledUris() {
+    return scheduler.getScheduledObjects().map(os => os.map(o => o.getUri()));
+  }
+  
+  //Heap's algorithm
+  function getPermutations<T>(a: T[], n = a.length, r: T[][] = []) {
+    if (n == 1) r.push(_.clone(a));
+    else {
+      _.range(n-1).forEach(i => {
+        getPermutations(a, n-1, r);
+        swap(a, n%2 ? 0 : i, n-1);
+      });
+      getPermutations(a, n-1, r);
+    }
+    return r;
+  }
+  
+  function swap(a: any[], i1: number, i2: number) {
+    [a[i1], a[i2]] = [a[i2], a[i1]];
   }
 
 });
