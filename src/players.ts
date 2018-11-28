@@ -122,23 +122,21 @@ export class MultiPlayer {
 export class HierarchicalPlayer {
 
   private navigator: Navigator;
-  private scheduledObjects: ScheduledObject[] = [];
+  private scheduledObjects: ScheduledObject[] = []; //all currently playing
   private partPlayers: HierarchicalPlayer[] = [];
   private isPlaying: boolean = false;
   private endingPromise: Promise<ScheduledObject>;
 
-  constructor(private dymoUri: string, private store: SuperDymoStore,
-      private referenceObject: ScheduledObject, private scheduler: DymoScheduler,
-      private dymoPlayer: MultiPlayer) {
-    
-  }
+  constructor(
+    private dymoUri: string,
+    private store: SuperDymoStore,
+    private referenceObject: ScheduledObject, //object to schedule relative to
+    private scheduler: DymoScheduler,
+    private dymoPlayer: MultiPlayer
+  ) { }
 
   getStore() {
     return this.store;
-  }
-
-  getLastScheduledObject() {
-    return _.last(this.scheduledObjects);
   }
 
   getEndingPromise(): Promise<ScheduledObject> {
@@ -153,9 +151,10 @@ export class HierarchicalPlayer {
   }
 
   async stop() {
-    await Promise.all(this.partPlayers.map(p => p.stop()));
     this.isPlaying = false;
-    return Promise.all(this.scheduledObjects.map(o => o ? o.stop() : null));
+    await Promise.all(this.partPlayers.map(p => p.stop()));
+    return Promise.all(
+      this.scheduledObjects.map(o => o ? o.stop() : null));
   }
 
   objectStarted(object: ScheduledObject) {
@@ -172,57 +171,41 @@ export class HierarchicalPlayer {
   }
 
   private async recursivePlay(): Promise<ScheduledObject> {
-    if (!this.isPlaying) {
-      return Promise.resolve(_.last(this.scheduledObjects));
-    }
-    //TODO PLAY AND OBSERVE MAIN DURATION ... should override part players...
-    //THEN MAKE PLAYER FOR NAVIGATED PART IF THERE IS ONE
-    this.navigator = this.navigator || await getNavigator(this.dymoUri, this.store);
-    const next = await this.navigator.next();
-
-    const currentReference = this.getLastScheduledObject() || this.referenceObject;
-
-    if (await this.navigator.hasParts()) {
+    //stop playing when stopped from outside
+    if (this.isPlaying) {
+      //TODO PLAY AND OBSERVE MAIN DURATION ... should override part players...
+      this.navigator = this.navigator || await getNavigator(this.dymoUri, this.store);
+      const next = await this.navigator.next();
+      
       if (next && next.uris) {
         if (this.dymoPlayer.isLoggingOn()) console.log(next.uris);
-        this.partPlayers = next.uris.map(p => new HierarchicalPlayer(
-          p, this.store, currentReference, this.scheduler, this.dymoPlayer));
-        //TODO COMBINE THE ELSE BELOW WITH THIS!!!!
-        this.addScheduledObjects(await Promise.all(
-          this.partPlayers.map(p => p.play())
-        ));
-        return this.recursivePlay();
-      } else {
-        //for now return the currently longest of the last scheduled objects
-        /*TODO could be improved once schedulo permits scheduling after group
-          of objects with variable duration!*/
-        /*TODO also, override with this duration if there is one! (e.g. sequence
-          with a variable duration regardless of its parts' durations)*/
-        let lastObjects = this.partPlayers.map(p => p.getLastScheduledObject()).filter(o => o);
-        let durations = await Promise.all(lastObjects.map(o => o.getParam(uris.DURATION)));
-        //TODO CURRENTLY TAKING SHORTEST ONE!!!!!!!! (SET BACK TO LONGEST?)
-        lastObjects.sort((a,b) => durations[lastObjects.indexOf(b)] - durations[lastObjects.indexOf(a)]);
-        return Promise.resolve(_.last(lastObjects));
-      }
-    } else {
-      if (next) {
-        try {
-          //for now, only schedule audio if this has no parts
-          this.addScheduledObjects(await Promise.all(next.uris.map(p =>
-            this.scheduler.schedule(p, currentReference, this))
-          ));
-          return this.recursivePlay();
-        } catch(err) {
-          console.log(err)
+        let objects: ScheduledObject[];
+        if (await this.navigator.hasParts()) {
+          this.partPlayers = next.uris.map(p => new HierarchicalPlayer(
+            p, this.store, this.referenceObject, this.scheduler, this.dymoPlayer));
+          objects = await Promise.all(this.partPlayers.map(p => p.play()));
+        } else {
+          objects = await Promise.all(next.uris.map(p =>
+            this.scheduler.schedule(p, this.referenceObject, this)));
         }
-      } else {
-        return Promise.resolve(_.last(this.scheduledObjects));
+        await this.addScheduledObjectsAndUpdateReference(objects);
+        return this.recursivePlay();
       }
     }
+    return this.referenceObject;
   }
-
-  private addScheduledObjects(objects: ScheduledObject[]) {
-    objects = objects.filter(o => o); //ignore undefined
+  
+  //CURRENTLY SHORTEST LAST!!! (SET BACK TO LONGEST ONCE DURATION OF PARENTS OBSERVED ABOVE)
+  //adds group of simultaneously scheduled objects, longest last
+  /*TODO could be improved once schedulo permits scheduling after group
+    of objects with variable duration!*/
+  /*TODO also, override with this duration if there is one! (e.g. sequence
+    with a variable duration regardless of its parts' durations)*/
+  private async addScheduledObjectsAndUpdateReference(objects: ScheduledObject[]) {
+    objects = objects.filter(o => o); //ignore undefined TODO NECESSARY STILL?
+    let durs = await Promise.all(objects.map(o => o.getParam(uris.DURATION)));
+    objects.sort((a,b) => durs[objects.indexOf(b)] - durs[objects.indexOf(a)]);
+    this.referenceObject = _.last(objects);
     this.scheduledObjects = this.scheduledObjects.concat(objects);
   }
 

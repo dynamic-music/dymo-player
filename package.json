@@ -40,7 +40,6 @@
     "@types/natsort": "^1.0.0",
     "@types/node-fetch": "^2.1.4",
     "jasmine": "^3.3.0",
-    "node-fetch": "^2.3.0",
     "ts-node": "^7.0.1",
     "typescript": "^2.9.2"
   }

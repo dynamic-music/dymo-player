@@ -218,8 +218,9 @@ abstract class ParamNavigator extends OneshotNavigator {
 export class SubsetNavigator extends ParamNavigator {
 
   async get() {
-    const size = await this.getParamValue() || _.random(this.parts.length-1);
-    return { uris: _.sampleSize(this.parts, size)};
+    const size = await this.getParamValue() || _.random(1, this.parts.length-1);
+    const sample = _.sampleSize(this.parts, size);
+    return { uris: this.parts.filter(p => sample.indexOf(p) >= 0) };//maintains the order
   }
 
 }

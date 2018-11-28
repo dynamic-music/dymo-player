@@ -6,7 +6,7 @@ import { ScheduledObject, DymoScheduler } from './scheduler';
   * objects start after given delay and end after another delay */
 export class DummyScheduler extends DymoScheduler {
   
-  private delay = 0.1;
+  private delay = 20; //in milliseconds
   //list of lists of simultaneously scheduled objects
   private objects: DummyScheduledObject[][] = [[]];
   private lastTime: number;
