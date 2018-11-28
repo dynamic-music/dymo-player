@@ -32,7 +32,7 @@ describe("a navigator", () => {
   }
   
   async function expectNext(navigator: Navigator, uri?: string) {
-    const nextUris = (await navigator.next()).uris;
+    const nextUris = await navigator.next();
     if (uri) {
       expect(nextUris).toContain(uri);
     } else {

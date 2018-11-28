@@ -177,17 +177,16 @@ export class HierarchicalPlayer {
       this.navigator = this.navigator || await getNavigator(this.dymoUri, this.store);
       const next = await this.navigator.next();
       
-      if (next && next.uris) {
-        if (this.dymoPlayer.isLoggingOn()) console.log(next.uris);
-        let objects: ScheduledObject[];
+      if (next) {
+        if (this.dymoPlayer.isLoggingOn()) console.log(next);
+        let objects: ScheduledObject[] = [];
         if (await this.navigator.hasParts()) {
-          this.partPlayers = next.uris.map(p => new HierarchicalPlayer(
+          this.partPlayers = next.map(p => new HierarchicalPlayer(
             p, this.store, this.referenceObject, this.scheduler, this.dymoPlayer));
-          objects = await Promise.all(this.partPlayers.map(p => p.play()));
-        } else {
-          objects = await Promise.all(next.uris.map(p =>
-            this.scheduler.schedule(p, this.referenceObject, this)));
+          objects.push(...await Promise.all(this.partPlayers.map(p => p.play())));
         }
+        objects.push(await this.scheduler.schedule(
+            this.dymoUri, this.referenceObject, this));
         await this.addScheduledObjectsAndUpdateReference(objects);
         return this.recursivePlay();
       }

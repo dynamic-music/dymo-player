@@ -19,16 +19,18 @@ export class DummyScheduler extends DymoScheduler {
     return this.objects;
   }
 
-  schedule(dymoUri: string, _: ScheduledObject,
+  async schedule(dymoUri: string, _: ScheduledObject,
       player: HierarchicalPlayer): Promise<ScheduledObject> {
-    return new Promise(resolve =>
-      setTimeout(() => {
-        //console.log("scheduled", dymoUri);
-        const newObject = new DummyScheduledObject(dymoUri, player, this.delay);
-        this.addToScheduledObjects(newObject);
-        resolve(newObject);
-      }, this.delay)
-    );
+    if (await player.getStore().getSourcePath(dymoUri)) {
+      return new Promise<ScheduledObject>(resolve =>
+        setTimeout(() => {
+          //console.log("scheduled", dymoUri);
+          const newObject = new DummyScheduledObject(dymoUri, player, this.delay);
+          this.addToScheduledObjects(newObject);
+          resolve(newObject);
+        }, this.delay)
+      );
+    }
   }
   
   private addToScheduledObjects(object: ScheduledObject) {

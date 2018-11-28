@@ -1,12 +1,5 @@
 import * as _ from 'lodash';
-import { Time } from 'schedulo';
 import { uris, SuperDymoStore, PartsObserver } from 'dymo-core';
-
-export interface SchedulingInstructions {
-  uris: string[],
-  initRefTime?: boolean,
-  time?: Time
-}
 
 export abstract class Navigator implements PartsObserver {
 
@@ -24,7 +17,7 @@ export abstract class Navigator implements PartsObserver {
     return this.parts.length > 0;
   }
 
-  async next(): Promise<SchedulingInstructions> {
+  async next(): Promise<string[]> {
     if (!this.parts) {
       await this.updateParts();
     }
@@ -94,14 +87,14 @@ export abstract class IndexedNavigator extends Navigator {
     this.currentIndex = 0;
   }
 
-  protected abstract get(): Promise<SchedulingInstructions>;
+  protected abstract get(): Promise<string[]>;
 
 }
 
 export class SequentialNavigator extends IndexedNavigator {
 
   async get() {
-    return { uris: this.toArray(this.parts[this.currentIndex++]) };
+    return this.toArray(this.parts[this.currentIndex++]);
   }
 
 }
@@ -110,7 +103,7 @@ export class ReverseSequentialNavigator extends IndexedNavigator {
 
   async get() {
     let reverseIndex = this.parts.length-1 - this.currentIndex++;
-    return { uris: this.toArray(this.parts[reverseIndex]) };
+    return this.toArray(this.parts[reverseIndex]);
   }
 
 }
@@ -127,9 +120,7 @@ export class PermutationNavigator extends IndexedNavigator {
   async get() {
     this.permutedIndices = this.permutedIndices
       || _.shuffle(_.range(this.parts.length));
-    return {
-      uris: this.toArray(this.parts[this.permutedIndices[this.currentIndex++]])
-    };
+    return this.toArray(this.parts[this.permutedIndices[this.currentIndex++]]);
   }
 
 }
@@ -137,10 +128,8 @@ export class PermutationNavigator extends IndexedNavigator {
 export class OnsetNavigator extends SequentialNavigator {
 
   async get() {
-    const init = this.currentIndex === 0;
     await this.sortParts();
-    const superget = await super.get();
-    return { uris: superget.uris, initRefTime: init }
+    return super.get();
   }
 
   private async sortParts() {
@@ -169,7 +158,7 @@ export abstract class OneshotNavigator extends Navigator {
     }
   }
 
-  abstract async get(): Promise<SchedulingInstructions>;
+  abstract async get(): Promise<string[]>;
 
   getPosition() {
     return 0;
@@ -180,7 +169,7 @@ export abstract class OneshotNavigator extends Navigator {
 export class LeafNavigator extends OneshotNavigator {
 
   async get() {
-    return { uris: this.toArray(this.dymoUri) };
+    return this.toArray(this.dymoUri);
   }
 
 }
@@ -188,7 +177,7 @@ export class LeafNavigator extends OneshotNavigator {
 export class ConjunctionNavigator extends OneshotNavigator {
 
   async get() {
-    return { uris: this.parts };
+    return this.parts;
   }
 
 }
@@ -196,7 +185,7 @@ export class ConjunctionNavigator extends OneshotNavigator {
 export class DisjunctionNavigator extends OneshotNavigator {
 
   async get() {
-    return { uris: this.toArray(_.sample(this.parts)) };
+    return this.toArray(_.sample(this.parts));
   }
 
 }
@@ -220,7 +209,7 @@ export class SubsetNavigator extends ParamNavigator {
   async get() {
     const size = await this.getParamValue() || _.random(1, this.parts.length-1);
     const sample = _.sampleSize(this.parts, size);
-    return { uris: this.parts.filter(p => sample.indexOf(p) >= 0) };//maintains the order
+    return this.parts.filter(p => sample.indexOf(p) >= 0);//maintains the order
   }
 
 }
@@ -229,7 +218,7 @@ export class SelectionNavigator extends ParamNavigator {
 
   async get() {
     const indexValue = await this.getParamValue() || 0;
-    return { uris: this.toArray(this.parts[indexValue]) };
+    return this.toArray(this.parts[indexValue]);
   }
 
 }
@@ -238,7 +227,7 @@ export class MultiSelectionNavigator extends ParamNavigator {
 
   async get() {
     const indicesValue = await this.getParamValue() || [0];
-    return { uris: indicesValue.map(i => this.parts[i]) };
+    return indicesValue.map(i => this.parts[i]);
   }
 
 }
@@ -247,7 +236,7 @@ export class MultiRandomNavigator extends ParamNavigator {
 
   async get() {
     const count = await this.getParamValue();
-    return { uris: _.sampleSize(this.parts, count) };
+    return _.sampleSize(this.parts, count);
   }
 
 }
