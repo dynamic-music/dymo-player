@@ -12,8 +12,7 @@ class NodeFetcher implements Fetcher {
     return JSON.parse(fs.readFileSync(url, "utf8"));
   }
   async fetchArrayBuffer(url: string) {
-    //return fetch(url).then(r => r.arrayBuffer());
-    return fs.readFileSync(url);
+    return fetch(url).then(r => r.arrayBuffer());
   }
 }
 
