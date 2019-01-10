@@ -22,7 +22,7 @@ export async function getStoreWithDymo() {
   await store.loadOntologies('node_modules/dymo-core/ontologies/');
   await store.addDymo("dymo1");
   await store.addDymo("dymo2", "dymo1");
-  await store.addDymo("dymo3", "dymo1");//, null, "3.m4a");
+  await store.addDymo("dymo3", "dymo1");
   await store.addDymo("dymo4", "dymo1");
   await store.addDymo("dymo5", "dymo2", null, "5.m4a");
   await store.addDymo("dymo6", "dymo2", null, "6.m4a");

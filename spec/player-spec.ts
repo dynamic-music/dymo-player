@@ -1,6 +1,6 @@
 import "jasmine";
 import * as _ from 'lodash';
-import { DymoGenerator, uris } from 'dymo-core';
+import { SuperDymoStore, DymoGenerator, uris } from 'dymo-core';
 import { MultiPlayer } from  "../src/players";
 import { DummyScheduler } from  "../src/dummy";
 import { getStoreWithDymo } from './util';
@@ -8,13 +8,14 @@ import { getStoreWithDymo } from './util';
 describe("a player", () => {
   
   const DYMO1_PARTS = [[[5],[6]], [[7],[11],[12],[9]], [[10]]];
+  let store: SuperDymoStore;
   let generator: DymoGenerator;
   let scheduler: DummyScheduler;
   let player: MultiPlayer;
 
   beforeEach(async () => {
     //(1:(2:5,6),(3:7,(8:11,12),9),(4:10)))
-    const store = await getStoreWithDymo();
+    store = await getStoreWithDymo();
     generator = new DymoGenerator(false, store);
     scheduler = new DummyScheduler();
     player = new MultiPlayer(store, scheduler);
@@ -73,9 +74,16 @@ describe("a player", () => {
     expectScheduled(zipUnevenFlat([DYMO1_PARTS[0],DYMO1_PARTS[2]]));
   });
   
+  it("knows what to do with higher-level sources", async () => {
+    await store.setValue("dymo3", uris.HAS_SOURCE, "3.m4a");
+    await player.play("dymo1");
+    expectScheduled(_.flatten(DYMO1_PARTS).map((p,i) => i==3 ? [3,7] : p));
+  });
+  
   //onsets
   //durations!!!
   //LOOP AND REPEAT
+  //MULTIPLE SOURCES PER OBJECT
   
   function expectScheduled(...dymoIndices: number[][][]) {
     expect(indicesToUris(...dymoIndices)).toContain(getScheduledUris());

@@ -187,6 +187,7 @@ export class HierarchicalPlayer {
         }
         objects.push(await this.scheduler.schedule(
             this.dymoUri, this.referenceObject, this));
+        //TODO if this stops, stop parts! (make function dependent on objectEnded...)
         await this.addScheduledObjectsAndUpdateReference(objects);
         return this.recursivePlay();
       }

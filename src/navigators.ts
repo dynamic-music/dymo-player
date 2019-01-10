@@ -232,15 +232,6 @@ export class MultiSelectionNavigator extends ParamNavigator {
 
 }
 
-export class MultiRandomNavigator extends ParamNavigator {
-
-  async get() {
-    const count = await this.getParamValue();
-    return _.sampleSize(this.parts, count);
-  }
-
-}
-
 const NAVIGATOR_MAP = {
   [uris.CONJUNCTION]: ConjunctionNavigator,
   [uris.DISJUNCTION]: DisjunctionNavigator,
