@@ -1,6 +1,6 @@
 import { Schedulo, Time, Playback } from 'schedulo';
 import { uris, Fetcher } from 'dymo-core';
-import { DymoScheduler } from './scheduler';
+import { DymoScheduler, ScheduledObject } from './scheduler';
 import { ScheduloScheduledObject } from './wrapper';
 import { HierarchicalPlayer } from './players';
 
