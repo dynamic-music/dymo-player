@@ -241,7 +241,8 @@ const NAVIGATOR_MAP = {
   [uris.ONSET_SEQUENCE]: OnsetNavigator,
   [uris.SUBSET]: SubsetNavigator,
   [uris.SELECTION]: SelectionNavigator,
-  [uris.MULTI_SELECTION]: MultiSelectionNavigator
+  [uris.MULTI_SELECTION]: MultiSelectionNavigator,
+  [uris.EVENT]: LeafNavigator
 }
 
 export async function getNavigator(dymoUri: string, store: SuperDymoStore): Promise<Navigator> {

@@ -9,7 +9,7 @@ export class ScheduloScheduler extends DymoScheduler {
   private schedulo: Schedulo;
   private paused = false;
 
-  constructor(scheduleAheadTime = 1, loadAheadTime = 3, fadeLength = 0.01, ignoreInaudible = false, fetcher?: Fetcher) {
+  constructor(scheduleAheadTime = 1, loadAheadTime = 3, fadeLength = 0.01, ignoreInaudible = false, fetcher?: Fetcher, useTone?: boolean) {
     super();
     this.schedulo = new Schedulo(
       {
@@ -17,7 +17,8 @@ export class ScheduloScheduler extends DymoScheduler {
         loadBuffer: {countIn: loadAheadTime, countOut: 5, minCountIn: loadAheadTime, ignoreInaudible: ignoreInaudible}
       },
       fadeLength,
-      fetcher
+      fetcher,
+      useTone
     );
   }
 

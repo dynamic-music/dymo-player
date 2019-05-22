@@ -64,8 +64,9 @@ export class MultiPlayer {
     }
   }
 
-  isPlaying(dymoUri: string) {
-    return this.currentPlayers.has(dymoUri);
+  isPlaying(dymoUri?: string) {
+    return dymoUri ? this.currentPlayers.has(dymoUri)
+      : this.currentPlayers.size > 0;
   }
 
   getPosition(dymoUri: string) {

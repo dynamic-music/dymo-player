@@ -14,7 +14,8 @@ export interface PlayerOptions {
   ignoreInaudible?: boolean,
   fadeLength?: number,
   fetcher?: Fetcher,
-  loggingOn?: boolean
+  loggingOn?: boolean,
+  useTone: boolean
 }
 
 /**
@@ -38,7 +39,7 @@ export class DymoPlayer {
     await this.dymoManager.init(ontologiesPath);
     this.schedulo = new ScheduloScheduler(this.options.scheduleAheadTime,
       this.options.loadAheadTime, this.options.fadeLength,
-      this.options.ignoreInaudible, this.options.fetcher);
+      this.options.ignoreInaudible, this.options.fetcher, this.options.useTone);
     this.player = new MultiPlayer(this.dymoManager.getStore(), this.schedulo, this.options.loggingOn);
   }
 
@@ -79,7 +80,7 @@ export class DymoPlayer {
     return this.schedulo.getAudioBank();
   }
 
-  isPlaying(dymoUri: string) {
+  isPlaying(dymoUri?: string) {
     return this.player ? this.player.isPlaying(dymoUri) : false;
   }
 
