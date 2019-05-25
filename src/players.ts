@@ -185,9 +185,13 @@ export class HierarchicalPlayer {
           this.partPlayers = next.map(p => new HierarchicalPlayer(
             p, this.store, this.referenceObject, this.scheduler, this.dymoPlayer));
           objects.push(...await Promise.all(this.partPlayers.map(p => p.play())));
+        } else {
+          //only playing leaf nodes :/
+          objects.push(await this.scheduler.schedule(
+              this.dymoUri, this.referenceObject, this));
         }
-        objects.push(await this.scheduler.schedule(
-            this.dymoUri, this.referenceObject, this));
+        /*objects.push(await this.scheduler.schedule(
+            this.dymoUri, this.referenceObject, this));*/
         //TODO if this stops, stop parts! (make function dependent on objectEnded...)
         await this.addScheduledObjectsAndUpdateReference(objects);
         return this.recursivePlay();

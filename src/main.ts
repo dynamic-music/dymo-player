@@ -40,6 +40,7 @@ export class DymoPlayer {
     this.schedulo = new ScheduloScheduler(this.options.scheduleAheadTime,
       this.options.loadAheadTime, this.options.fadeLength,
       this.options.ignoreInaudible, this.options.fetcher, this.options.useTone);
+    await this.schedulo.isReady();
     this.player = new MultiPlayer(this.dymoManager.getStore(), this.schedulo, this.options.loggingOn);
   }
 

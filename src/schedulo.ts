@@ -21,6 +21,10 @@ export class ScheduloScheduler extends DymoScheduler {
       useTone
     );
   }
+  
+  isReady() {
+    return this.schedulo.isReady();
+  }
 
   isPaused() {
     return this.paused;

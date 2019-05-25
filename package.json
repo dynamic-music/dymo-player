@@ -1,6 +1,6 @@
 {
   "name": "dymo-player",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "dymo playback module optimized for browsers",
   "main": "lib/index.js",
   "typings": "lib/index",
