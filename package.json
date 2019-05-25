@@ -1,6 +1,6 @@
 {
   "name": "dymo-player",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "dymo playback module optimized for browsers",
   "main": "lib/index.js",
   "typings": "lib/index",
@@ -30,7 +30,7 @@
     "natsort": "^1.0.6",
     "promise-worker": "^1.1.1",
     "rxjs": "^6.3.3",
-    "schedulo": "~0.5.1",
+    "schedulo": "~0.5.2",
     "worker-loader": "^2.0.0"
   },
   "devDependencies": {
