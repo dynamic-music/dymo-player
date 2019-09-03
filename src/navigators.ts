@@ -217,8 +217,10 @@ export class SubsetNavigator extends ParamNavigator {
 export class SelectionNavigator extends ParamNavigator {
 
   async get() {
-    const indexValue = await this.getParamValue() || 0;
-    return this.toArray(this.parts[indexValue]);
+    if (this.parts.length) {
+      const indexValue = await this.getParamValue() || 0;
+      return this.toArray(this.parts[indexValue]);
+    }
   }
 
 }
@@ -226,8 +228,10 @@ export class SelectionNavigator extends ParamNavigator {
 export class MultiSelectionNavigator extends ParamNavigator {
 
   async get() {
-    const indicesValue = await this.getParamValue() || [0];
-    return indicesValue.map(i => this.parts[i]);
+    if (this.parts.length) {
+      const indicesValue = await this.getParamValue() || [0];
+      return indicesValue.map(i => this.parts[i]).filter(uri=>uri);
+    }
   }
 
 }
