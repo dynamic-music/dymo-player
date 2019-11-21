@@ -3,7 +3,8 @@ import { HierarchicalPlayer } from './players';
 
 export abstract class DymoScheduler {
 
-  abstract setListenerOrientation(posX, posY, posZ, forwX, forwY, forwZ);
+  abstract setListenerOrientation(posX: number, posY: number, posZ: number, forwX: number, forwY: number, forwZ: number);
+  abstract setListenerPosition(x: number, y: number, z: number);
 
   abstract schedule(dymoUri: string, previousObject: ScheduledObject,
     player: HierarchicalPlayer): Promise<ScheduledObject>;

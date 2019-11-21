@@ -14,6 +14,7 @@ export class DummyScheduler extends DymoScheduler {
   constructor() { super(); }
 
   setListenerOrientation(..._) { }
+  setListenerPosition(..._) { }
   
   getScheduledObjects() {
     return this.objects;

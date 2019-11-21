@@ -35,8 +35,12 @@ export class ScheduloScheduler extends DymoScheduler {
     //this.schedulo.pause();
   }
 
-  setListenerOrientation(posX, posY, posZ, forwX, forwY, forwZ) {
+  setListenerOrientation(posX: number, posY: number, posZ: number, forwX: number, forwY: number, forwZ: number) {
     this.schedulo.setListenerOrientation(posX, posY, posZ, forwX, forwY, forwZ);
+  }
+  
+  setListenerPosition(x: number, y: number, z: number) {
+    this.schedulo.setListenerPosition(x, y, z);
   }
 
   getAudioBank() {

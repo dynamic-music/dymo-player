@@ -24,7 +24,13 @@ export class MultiPlayer {
   constructor(private store: SuperDymoStore, private scheduler: DymoScheduler,
     private loggingOn = false) {
     this.store.setParameter(null, uris.LISTENER_ORIENTATION, 0);
+    this.store.setParameter(null, uris.LISTENER_POSITION_X, 0);
+    this.store.setParameter(null, uris.LISTENER_POSITION_Y, 0);
+    this.store.setParameter(null, uris.LISTENER_POSITION_Z, 0);
     this.store.addParameterObserver(null, uris.LISTENER_ORIENTATION, this);
+    this.store.addParameterObserver(null, uris.LISTENER_POSITION_X, this);
+    this.store.addParameterObserver(null, uris.LISTENER_POSITION_Y, this);
+    this.store.addParameterObserver(null, uris.LISTENER_POSITION_Z, this);
     this.store.addTypeObserver(uris.PLAY, this);
   }
 
@@ -108,6 +114,11 @@ export class MultiPlayer {
     if (paramType == uris.LISTENER_ORIENTATION) {
       var angleInRadians = value * 2 * Math.PI; //[0,1] -> [0,2PI]
       this.scheduler.setListenerOrientation(Math.sin(angleInRadians), 0, -Math.cos(angleInRadians), 0, 1, 0);
+    } else if (paramType == uris.LISTENER_POSITION_X || paramType == uris.LISTENER_POSITION_Y || paramType == uris.LISTENER_POSITION_Z) {
+      const x = await this.store.findParameterValue(null, uris.LISTENER_POSITION_X);
+      const y = await this.store.findParameterValue(null, uris.LISTENER_POSITION_Y);
+      const z = await this.store.findParameterValue(null, uris.LISTENER_POSITION_Z);
+      this.scheduler.setListenerPosition(x, y, z);
     } else if (paramType == uris.PLAY) {
       var dymoUri = await this.store.findSubject(uris.HAS_PARAMETER, paramUri);
       if (value > 0) {
