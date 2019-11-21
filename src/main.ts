@@ -47,19 +47,20 @@ export class DymoPlayer {
   async loadDymo(...fileUris: string[]): Promise<LoadedStuff> {
     if (this.options.loggingOn) console.log("LOADING", ...fileUris)
     const loaded = await this.dymoManager.loadIntoStore(...fileUris);
-    this.preloadAndLog();
+    await this.preloadAndLog();
     return loaded;
   }
 
   async loadDymoFromString(dymo: string): Promise<LoadedStuff> {
     if (this.options.loggingOn) console.log("LOADING")
     const loaded = await this.dymoManager.loadIntoStoreFromString(dymo);
-    this.preloadAndLog();
+    await this.preloadAndLog();
     return loaded;
   }
 
   private async preloadAndLog() {
     if (this.options.preloadBuffers) {
+      if (this.options.loggingOn) console.log("LOADING BUFFERS")
       const paths = await this.dymoManager.getStore().getAllSourcePaths();
       await this.schedulo.getAudioBank().preloadBuffers(paths)
     }

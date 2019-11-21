@@ -106,7 +106,7 @@ export class MultiPlayer {
 
   async observedValueChanged(paramUri, paramType, value) {
     if (paramType == uris.LISTENER_ORIENTATION) {
-      var angleInRadians = value / 180 * Math.PI;
+      var angleInRadians = value * 2 * Math.PI; //[0,1] -> [0,2PI]
       this.scheduler.setListenerOrientation(Math.sin(angleInRadians), 0, -Math.cos(angleInRadians), 0, 1, 0);
     } else if (paramType == uris.PLAY) {
       var dymoUri = await this.store.findSubject(uris.HAS_PARAMETER, paramUri);
