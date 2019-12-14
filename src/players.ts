@@ -117,7 +117,8 @@ export class MultiPlayer {
     } else if (paramType == uris.LISTENER_POSITION_X || paramType == uris.LISTENER_POSITION_Y || paramType == uris.LISTENER_POSITION_Z) {
       const x = await this.store.findParameterValue(null, uris.LISTENER_POSITION_X);
       const y = await this.store.findParameterValue(null, uris.LISTENER_POSITION_Y);
-      const z = await this.store.findParameterValue(null, uris.LISTENER_POSITION_Z);
+      let z = await this.store.findParameterValue(null, uris.LISTENER_POSITION_Z);
+      z = z ? z : 1;
       this.scheduler.setListenerPosition(x, y, z);
     } else if (paramType == uris.PLAY) {
       var dymoUri = await this.store.findSubject(uris.HAS_PARAMETER, paramUri);
