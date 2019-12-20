@@ -191,7 +191,9 @@ export class HierarchicalPlayer {
       const next = await this.navigator.next();
       
       if (next) {
-        if (this.dymoPlayer.isLoggingOn()) console.log(next);
+        if (this.dymoPlayer.isLoggingOn()) console.log(
+          await Promise.all(next.map(async n => await this.store.findFeatureValue(n, uris.LEVEL_FEATURE)
+            + "." + await this.store.findFeatureValue(n, uris.INDEX_FEATURE))));
         let objects: ScheduledObject[] = [];
         if (await this.navigator.hasParts()) {
           this.partPlayers = next.map(p => new HierarchicalPlayer(
@@ -221,8 +223,7 @@ export class HierarchicalPlayer {
   private async addScheduledObjectsAndUpdateReference(objects: ScheduledObject[]) {
     objects = objects.filter(o => o); //ignore undefined TODO NECESSARY STILL?
     let durs = await Promise.all(objects.map(o => o.getParam(uris.DURATION)));
-    objects.sort((a,b) => durs[objects.indexOf(b)] - durs[objects.indexOf(a)]);
-    this.referenceObject = _.last(objects);
+    this.referenceObject = objects[durs.indexOf(_.max(durs))];
     this.scheduledObjects = this.scheduledObjects.concat(objects);
   }
 
